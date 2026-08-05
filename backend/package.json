@@ -1,0 +1,21 @@
+{
+  "name": "retroplayer-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Infraestructura mínima del backend de RetroPlayer para Render + TiDB Cloud",
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node -r dotenv/config src/server.js",
+    "test": "node -r dotenv/config --test src/test/app.test.js"
+  },
+  "dependencies": {
+    "mysql2": "^3.11.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.5"
+  }
+}
