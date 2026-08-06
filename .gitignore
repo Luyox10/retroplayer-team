@@ -141,3 +141,16 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# RetroPlayer backend
+backend/.env
+backend/.env.*
+backend/dist/
+backend/build/
+backend/coverage/
+backend/logs/
+backend/*.log
+backend/tmp/
+backend/__verify*.mjs
+backend/__migrate*.mjs
+backend/.cache/

@@ -3,40 +3,42 @@ import { pathToFileURL } from 'node:url';
 import { handleRequest } from './router.js';
 import { config } from './config/environment.js';
 import { pool } from './database/pool.js';
+import { handleError } from './middleware/errorHandler.js';
 
 const server = createServer((req, res) => {
   handleRequest(req, res).catch((err) => {
-    console.error('Unhandled request error:', err.message);
-    try {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: false, message: 'Internal Server Error' }));
-    } catch {}
+    console.error('Unhandled server error:', err);
+    handleError(res, err);
   });
 });
 
 function start() {
   server.listen(config.PORT, '0.0.0.0', () => {
-    console.log(`RetroPlayer API listening on http://0.0.0.0:${config.PORT} in ${config.NODE_ENV} mode`);
+    console.log(`[RetroPlayer API] Listening on http://0.0.0.0:${config.PORT} in ${config.NODE_ENV} mode`);
+    console.log(`[RetroPlayer API] TiDB host: ${config.DB_HOST}:${config.DB_PORT}`);
+    console.log(`[RetroPlayer API] Database: ${config.DB_NAME}`);
+    const allowedOrigins = [config.FRONTEND_URL, config.ADMIN_PANEL_URL].filter(Boolean).join(', ') || 'none configured';
+    console.log(`[RetroPlayer API] Allowed CORS origins: ${allowedOrigins}`);
   });
 }
 
 server.on('error', (err) => {
-  console.error('Server startup error:', err.message);
+  console.error('[Server startup error]:', err.message);
   process.exit(1);
 });
 
 function shutdown(signal) {
-  console.log(`Received ${signal}, shutting down...`);
-  server.close(() => {
-    pool.end()
-      .then(() => {
-        console.log('Database pool closed.');
-        process.exit(0);
-      })
-      .catch((err) => {
-        console.error('Error closing pool:', err.message);
-        process.exit(1);
-      });
+  console.log(`[${signal}] Received, shutting down gracefully...`);
+  server.close(async () => {
+    console.log('[Server] HTTP server closed.');
+    try {
+      await pool.end();
+      console.log('[Server] Database pool closed.');
+      process.exit(0);
+    } catch (err) {
+      console.error('[Server] Error closing database pool:', err.message);
+      process.exit(1);
+    }
   });
 }
 
