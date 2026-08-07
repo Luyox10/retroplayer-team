@@ -1,15 +1,24 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { searchTracks, getRecommended } from '../services/exploreService';
 import '../styles/Pages.css';
 
 function TrackCard({ track }) {
+  const navigate = useNavigate();
   const [imgError, setImgError] = React.useState(false);
-  const title = track.name || track.title || 'Sin título';
-  const artist = track.artist_name || track.artist || 'Desconocido';
-  const cover = track.cover_url || track.image;
+  const title = track.title || 'Sin título';
+  const artist = track.artist || 'Desconocido';
+  const cover = track.thumbnailUrl;
   const hasCover = cover && !imgError;
+
+  const handlePlay = () => {
+    if (track.audioUrl) {
+      navigate('/room', { state: { track } });
+    }
+  };
+
   return (
-    <div className="card track-card">
+    <div className="card track-card" onClick={handlePlay} role="button" tabIndex={0}>
       {hasCover ? (
         <img src={cover} alt={title} onError={() => setImgError(true)} />
       ) : (

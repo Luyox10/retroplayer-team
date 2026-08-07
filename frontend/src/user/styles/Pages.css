@@ -166,11 +166,17 @@
 
 .track-card {
   transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  outline: none;
 }
 
 .track-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.track-card:focus-visible {
+  box-shadow: 0 0 0 2px #60a5fa;
 }
 
 .track-card img,

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getFreeEnvironments, getEnvironmentById } from '../services/roomService';
 import { getRecommended } from '../services/exploreService';
@@ -15,6 +16,8 @@ import '../components/room/RoomEnhanced.css';
 
 export default function Room() {
   const { user } = useAuth();
+  const location = useLocation();
+  const passedTrack = location.state?.track;
   const [environment, setEnvironment] = useState(null);
   const [tracks, setTracks] = useState([]);
   const [current, setCurrent] = useState(null);
@@ -42,11 +45,18 @@ export default function Room() {
     getRecommended()
       .then((r) => {
         const list = r?.tracks || [];
-        setTracks(list);
-        if (list[0]) setCurrent(list[0]);
+        if (passedTrack) {
+          const deduped = list.filter((t) => t.externalId !== passedTrack.externalId);
+          setTracks([passedTrack, ...deduped]);
+          setCurrent(passedTrack);
+          setIsPlaying(true);
+        } else {
+          setTracks(list);
+          if (list[0]) setCurrent(list[0]);
+        }
       })
       .catch((err) => setError(err.message));
-  }, []);
+  }, [passedTrack]);
 
   useEffect(() => {
     const audio = audioRef.current;
