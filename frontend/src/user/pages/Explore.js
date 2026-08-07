@@ -3,13 +3,15 @@ import { searchTracks, getRecommended } from '../services/exploreService';
 import '../styles/Pages.css';
 
 function TrackCard({ track }) {
+  const [imgError, setImgError] = React.useState(false);
   const title = track.name || track.title || 'Sin título';
   const artist = track.artist_name || track.artist || 'Desconocido';
   const cover = track.cover_url || track.image;
+  const hasCover = cover && !imgError;
   return (
-    <div className="card">
-      {cover ? (
-        <img src={cover} alt={title} />
+    <div className="card track-card">
+      {hasCover ? (
+        <img src={cover} alt={title} onError={() => setImgError(true)} />
       ) : (
         <div className="cover-placeholder">
           <span>{title[0]}</span>

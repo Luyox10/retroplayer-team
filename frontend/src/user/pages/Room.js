@@ -11,6 +11,7 @@ import Visualizer from '../components/room/Visualizer';
 import BottomBar from '../components/room/BottomBar';
 import PlaybackPanel from '../components/room/PlaybackPanel';
 import '../components/room/RoomObjects.css';
+import '../components/room/RoomEnhanced.css';
 
 export default function Room() {
   const { user } = useAuth();

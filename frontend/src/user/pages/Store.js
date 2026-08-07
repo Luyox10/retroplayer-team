@@ -3,6 +3,28 @@ import { getProducts, createOrder } from '../services/shopService';
 import { getOrders } from '../services/shopService';
 import '../styles/Pages.css';
 
+function ProductCard({ product, onBuy }) {
+  const [imgError, setImgError] = useState(false);
+  const hasImage = product.image_url && !imgError;
+  return (
+    <div className="card product-card" key={product.id}>
+      {hasImage ? (
+        <img src={product.image_url} alt={product.name} onError={() => setImgError(true)} />
+      ) : (
+        <div className="cover-placeholder product-placeholder">
+          <span>{product.name[0]}</span>
+          <p>{product.type}</p>
+        </div>
+      )}
+      <h3>{product.name}</h3>
+      <span className="product-type">{product.type}</span>
+      <p className="product-desc">{product.description}</p>
+      <p className="product-price">${product.price} {product.currency}</p>
+      <button className="btn" onClick={() => onBuy(product.id)}>Comprar</button>
+    </div>
+  );
+}
+
 export default function Store() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -40,19 +62,13 @@ export default function Store() {
       {loading && <div className="loading">Cargando...</div>}
       <div className="grid">
         {products.map((product) => (
-          <div className="card" key={product.id}>
-            <img src={product.image_url || '/logo192.png'} alt={product.name} />
-            <h3>{product.name}</h3>
-            <p>{product.description}</p>
-            <p>${product.price} {product.currency}</p>
-            <button className="btn" onClick={() => handleBuy(product.id)}>Comprar</button>
-          </div>
+          <ProductCard product={product} onBuy={handleBuy} key={product.id} />
         ))}
       </div>
 
       <h3>Mis órdenes</h3>
       {orders.length === 0 ? <p className="empty">Sin órdenes</p> : (
-        <ul>
+        <ul className="orders-list">
           {orders.map((o) => (
             <li key={o.id}>{o.product_name} - ${o.total_amount} {o.currency} ({o.status})</li>
           ))}
