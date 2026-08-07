@@ -7,6 +7,7 @@ import Explore from '../pages/Explore';
 import Library from '../pages/Library';
 import Store from '../pages/Store';
 import Profile from '../pages/Profile';
+import Room from '../pages/Room';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 
@@ -20,6 +21,7 @@ export default function AppRouter() {
           <Route path="/library" element={<RequireAuth><Library /></RequireAuth>} />
           <Route path="/store" element={<RequireAuth><Store /></RequireAuth>} />
           <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
+          <Route path="/room" element={<RequireAuth><Room /></RequireAuth>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="*" element={<Navigate to="/" replace />} />

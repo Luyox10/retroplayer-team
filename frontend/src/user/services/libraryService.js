@@ -22,3 +22,10 @@ export function getHistory(limit = 20, offset = 0) {
   const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
   return request(`/api/history?${params.toString()}`);
 }
+
+export function addHistory(data) {
+  return request('/api/history', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}

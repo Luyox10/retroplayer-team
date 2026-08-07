@@ -6,6 +6,7 @@ const links = [
   { to: '/explore', label: 'Explorar' },
   { to: '/library', label: 'Biblioteca' },
   { to: '/store', label: 'Tienda' },
+  { to: '/room', label: 'Ambiente' },
   { to: '/profile', label: 'Perfil' },
 ];
 
