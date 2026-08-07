@@ -53,10 +53,18 @@ export default function Room() {
 
     audio.src = current.audioUrl || '';
     audio.load();
+  }, [current]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !current) return;
+
     if (isPlaying) {
       audio.play().catch(() => setIsPlaying(false));
+    } else {
+      audio.pause();
     }
-  }, [current]);
+  }, [current, isPlaying]);
 
   useEffect(() => {
     const audio = audioRef.current;
