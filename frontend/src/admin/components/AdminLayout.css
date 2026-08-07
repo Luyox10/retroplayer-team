@@ -204,4 +204,14 @@
   .admin-sidebar a {
     white-space: nowrap;
   }
+
+  .admin-table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    white-space: nowrap;
+  }
 }

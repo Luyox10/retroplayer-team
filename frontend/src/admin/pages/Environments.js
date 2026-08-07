@@ -11,8 +11,12 @@ export default function Environments() {
   const [form, setForm] = useState({ ...emptyForm });
   const [editing, setEditing] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const load = () => getEnvironments().then((r) => setItems(r?.environments || [])).catch((err) => setError(err.message));
+  const load = () => {
+    setLoading(true);
+    getEnvironments().then((r) => setItems(r?.environments || [])).catch((err) => setError(err.message)).finally(() => setLoading(false));
+  };
   useEffect(load, []);
 
   const handleChange = (e) => {
@@ -59,6 +63,7 @@ export default function Environments() {
     <div>
       <h2>Ambientes</h2>
       {error && <div className="admin-error">{error}</div>}
+      {loading && <div>Cargando...</div>}
       <form className="admin-form" onSubmit={handleSubmit}>
         <label>Nombre</label>
         <input name="name" value={form.name} onChange={handleChange} required />

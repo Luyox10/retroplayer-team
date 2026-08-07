@@ -6,11 +6,14 @@ const STATUSES = ['active', 'suspended', 'banned'];
 export default function Users() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const load = () => {
+    setLoading(true);
     getUsers()
       .then((r) => setUsers(r?.users || []))
-      .catch((err) => setError(err.message));
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   };
 
   useEffect(load, []);
@@ -28,6 +31,7 @@ export default function Users() {
     <div>
       <h2>Usuarios</h2>
       {error && <div className="admin-error">{error}</div>}
+      {loading && <div>Cargando...</div>}
       <table className="admin-table">
         <thead>
           <tr>

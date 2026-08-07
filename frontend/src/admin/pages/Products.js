@@ -10,8 +10,12 @@ export default function Products() {
   const [form, setForm] = useState({ ...emptyForm });
   const [editing, setEditing] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const load = () => getProducts().then((r) => setProducts(r?.products || [])).catch((err) => setError(err.message));
+  const load = () => {
+    setLoading(true);
+    getProducts().then((r) => setProducts(r?.products || [])).catch((err) => setError(err.message)).finally(() => setLoading(false));
+  };
 
   useEffect(load, []);
 
@@ -72,6 +76,7 @@ export default function Products() {
     <div>
       <h2>Productos</h2>
       {error && <div className="admin-error">{error}</div>}
+      {loading && <div>Cargando...</div>}
       <form className="admin-form" onSubmit={handleSubmit}>
         <label>Nombre</label>
         <input name="name" value={form.name} onChange={handleChange} required />

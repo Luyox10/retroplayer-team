@@ -6,8 +6,12 @@ const STATUSES = ['open', 'reviewed', 'resolved', 'dismissed'];
 export default function Reports() {
   const [reports, setReports] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const load = () => getReports().then((r) => setReports(r?.reports || [])).catch((err) => setError(err.message));
+  const load = () => {
+    setLoading(true);
+    getReports().then((r) => setReports(r?.reports || [])).catch((err) => setError(err.message)).finally(() => setLoading(false));
+  };
   useEffect(load, []);
 
   const changeStatus = async (id, status) => {
@@ -23,6 +27,7 @@ export default function Reports() {
     <div>
       <h2>Reportes</h2>
       {error && <div className="admin-error">{error}</div>}
+      {loading && <div>Cargando...</div>}
       <table className="admin-table">
         <thead>
           <tr><th>ID</th><th>Reporter</th><th>Target</th><th>Target ID</th><th>Razón</th><th>Estado</th><th>Acciones</th></tr>

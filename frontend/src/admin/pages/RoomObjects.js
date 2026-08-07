@@ -11,8 +11,12 @@ export default function RoomObjects() {
   const [form, setForm] = useState({ ...emptyForm });
   const [editing, setEditing] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const load = () => getRoomObjects().then((r) => setItems(r?.objects || [])).catch((err) => setError(err.message));
+  const load = () => {
+    setLoading(true);
+    getRoomObjects().then((r) => setItems(r?.objects || [])).catch((err) => setError(err.message)).finally(() => setLoading(false));
+  };
   useEffect(load, []);
 
   const handleChange = (e) => {
@@ -59,6 +63,7 @@ export default function RoomObjects() {
     <div>
       <h2>Objetos</h2>
       {error && <div className="admin-error">{error}</div>}
+      {loading && <div>Cargando...</div>}
       <form className="admin-form" onSubmit={handleSubmit}>
         <label>Nombre</label>
         <input name="name" value={form.name} onChange={handleChange} required />
