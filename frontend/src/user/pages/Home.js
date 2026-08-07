@@ -4,11 +4,21 @@ import { getFeatured } from '../services/featuredService';
 import '../styles/Pages.css';
 
 function TrackCard({ track }) {
+  const title = track.title || 'Sin título';
+  const artist = track.artist || 'Desconocido';
+  const cover = track.cover_url;
   return (
     <div className="card">
-      <img src={track.cover_url || '/logo192.png'} alt={track.title} />
-      <h3>{track.title}</h3>
-      <p>{track.artist}</p>
+      {cover ? (
+        <img src={cover} alt={title} />
+      ) : (
+        <div className="cover-placeholder">
+          <span>{title[0]}</span>
+          <p>{artist}</p>
+        </div>
+      )}
+      <h3>{title}</h3>
+      <p>{artist}</p>
     </div>
   );
 }

@@ -3,11 +3,21 @@ import { searchTracks, getRecommended } from '../services/exploreService';
 import '../styles/Pages.css';
 
 function TrackCard({ track }) {
+  const title = track.name || track.title || 'Sin título';
+  const artist = track.artist_name || track.artist || 'Desconocido';
+  const cover = track.cover_url || track.image;
   return (
     <div className="card">
-      <img src={track.cover_url || track.image || '/logo192.png'} alt={track.name || track.title} />
-      <h3>{track.name || track.title}</h3>
-      <p>{track.artist_name || track.artist}</p>
+      {cover ? (
+        <img src={cover} alt={title} />
+      ) : (
+        <div className="cover-placeholder">
+          <span>{title[0]}</span>
+          <p>{artist}</p>
+        </div>
+      )}
+      <h3>{title}</h3>
+      <p>{artist}</p>
     </div>
   );
 }

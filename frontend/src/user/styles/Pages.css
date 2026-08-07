@@ -132,3 +132,34 @@
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
 }
+
+.cover-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #0f3460, #e94560);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  text-align: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+}
+
+.cover-placeholder span {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.cover-placeholder p {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  margin: 0;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
