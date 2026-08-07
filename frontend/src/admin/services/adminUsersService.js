@@ -6,7 +6,7 @@ export function getUsers(limit = 20, offset = 0) {
 }
 
 export function updateUserStatus(id, status) {
-  return request(`/api/admin/users/${id}/status`, {
+  return request(`/api/admin/users/${id}`, {
     method: 'PUT',
     body: JSON.stringify({ status }),
   });
