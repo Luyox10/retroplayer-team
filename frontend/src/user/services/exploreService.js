@@ -10,5 +10,5 @@ export function getRecommended(limit = 20) {
 }
 
 export function getTrack(externalId) {
-  return request(`/api/explore/tracks/${encodeURIComponent(externalId)}`);
+  return request(`/api/explore/videos/${encodeURIComponent(externalId)}`);
 }

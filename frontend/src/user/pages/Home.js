@@ -9,17 +9,17 @@ function TrackCard({ track }) {
   const [imgError, setImgError] = React.useState(false);
   const title = track.title || 'Sin título';
   const artist = track.artist || 'Desconocido';
-  const cover = track.thumbnailUrl || track.cover_url;
+  const cover = track.thumbnail || track.cover_url;
   const hasCover = cover && !imgError;
 
   const handlePlay = async () => {
-    if (track.audioUrl) {
+    if (track.embedUrl || track.videoId) {
       navigate('/room', { state: { track } });
       return;
     }
-    if (track.source === 'jamendo' && track.external_track_id) {
+    if (track.source === 'youtube' && track.external_track_id) {
       const r = await getTrack(track.external_track_id);
-      if (r?.track?.audioUrl) {
+      if (r?.track?.embedUrl) {
         navigate('/room', { state: { track: r.track } });
       }
     }
@@ -69,7 +69,7 @@ export default function Home() {
       </div>
       <h3>Recomendados</h3>
       <div className="grid">
-        {recommended.length > 0 ? recommended.map((t) => <TrackCard key={`${t.source}-${t.id || t.track_id}`} track={t} />) : <p className="empty">Sin recomendaciones</p>}
+        {recommended.length > 0 ? recommended.map((t) => <TrackCard key={`${t.source}-${t.externalId || t.id}`} track={t} />) : <p className="empty">Sin recomendaciones</p>}
       </div>
     </div>
   );

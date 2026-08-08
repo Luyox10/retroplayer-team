@@ -8,11 +8,11 @@ function TrackCard({ track }) {
   const [imgError, setImgError] = React.useState(false);
   const title = track.title || 'Sin título';
   const artist = track.artist || 'Desconocido';
-  const cover = track.thumbnailUrl;
+  const cover = track.thumbnail;
   const hasCover = cover && !imgError;
 
   const handlePlay = () => {
-    if (track.audioUrl) {
+    if (track.embedUrl || track.videoId) {
       navigate('/room', { state: { track } });
     }
   };
@@ -73,7 +73,7 @@ export default function Explore() {
       {error && <div className="error">{error}</div>}
       {loading && <div className="loading">Cargando...</div>}
       <div className="grid">
-        {tracks.length > 0 ? tracks.map((t) => <TrackCard key={t.id || t.track_id || t.audio} track={t} />) : <p className="empty">Sin resultados</p>}
+        {tracks.length > 0 ? tracks.map((t) => <TrackCard key={t.externalId} track={t} />) : <p className="empty">Sin resultados</p>}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import Lamp from '../components/room/Lamp';
 import Visualizer from '../components/room/Visualizer';
 import BottomBar from '../components/room/BottomBar';
 import PlaybackPanel from '../components/room/PlaybackPanel';
+import YouTubePlayer from '../components/room/YouTubePlayer';
 import '../components/room/RoomObjects.css';
 import '../components/room/RoomEnhanced.css';
 
@@ -26,7 +27,7 @@ export default function Room() {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [error, setError] = useState(null);
-  const audioRef = useRef(null);
+  const ytPlayerRef = useRef(null);
 
   useEffect(() => {
     getFreeEnvironments()
@@ -59,46 +60,47 @@ export default function Room() {
   }, [passedTrack]);
 
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !current) return;
-
-    audio.src = current.audioUrl || '';
-    audio.load();
+    if (!current) return;
+    setDuration(current.duration || 0);
+    setCurrentTime(0);
   }, [current]);
 
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !current) return;
-
-    if (isPlaying) {
-      audio.play().catch(() => setIsPlaying(false));
-    } else {
-      audio.pause();
-    }
+    if (!ytPlayerRef.current || !current || !isPlaying) return;
+    const id = setInterval(() => {
+      const t = ytPlayerRef.current.getCurrentTime();
+      if (typeof t === 'number') setCurrentTime(t);
+    }, 1000);
+    return () => clearInterval(id);
   }, [current, isPlaying]);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.volume = volume;
-  }, [volume]);
-
-  const togglePlay = () => {
-    const audio = audioRef.current;
-    if (!audio || !current) return;
-    if (audio.paused) {
-      audio.play().then(() => {
-        setIsPlaying(true);
-      }).catch(() => setIsPlaying(false));
-    } else {
-      audio.pause();
-      setIsPlaying(false);
+  const onReady = (player) => {
+    ytPlayerRef.current = player;
+    if (isPlaying) {
+      player.playVideo();
     }
   };
 
-  const onTimeUpdate = () => {
-    setCurrentTime(audioRef.current?.currentTime || 0);
-    setDuration(audioRef.current?.duration || 0);
+  const onPlay = () => {
+    setIsPlaying(true);
+    if (user && current) {
+      try {
+        addHistory({
+          external_track_id: String(current.externalId),
+          source: current.source,
+          title: current.title,
+          artist: current.artist,
+          cover_url: current.thumbnail,
+          duration_seconds: current.duration,
+        });
+      } catch (e) {
+        // no-op
+      }
+    }
+  };
+
+  const onPause = () => {
+    setIsPlaying(false);
   };
 
   const onEnded = () => {
@@ -106,26 +108,12 @@ export default function Room() {
     handleNext();
   };
 
-  const onLoadedMetadata = () => {
-    setDuration(audioRef.current?.duration || 0);
+  const onError = (err) => {
+    setError(`YouTube player error: ${err}`);
   };
 
-  const handlePlay = async () => {
-    setIsPlaying(true);
-    if (user && current) {
-      try {
-        await addHistory({
-          external_track_id: String(current.externalId),
-          source: current.source,
-          title: current.title,
-          artist: current.artist,
-          cover_url: current.thumbnailUrl,
-          duration_seconds: current.duration,
-        });
-      } catch (e) {
-        // no-op
-      }
-    }
+  const togglePlay = () => {
+    setIsPlaying((p) => !p);
   };
 
   const handleSelect = (track) => {
@@ -146,11 +134,14 @@ export default function Room() {
   };
 
   const handleSeek = (value) => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.currentTime = value;
-      setCurrentTime(value);
+    if (ytPlayerRef.current) {
+      ytPlayerRef.current.seekTo(value, true);
     }
+    setCurrentTime(value);
+  };
+
+  const handleVolume = (value) => {
+    setVolume(value);
   };
 
   if (error) return <div className="error">{error}</div>;
@@ -158,20 +149,21 @@ export default function Room() {
   return (
     <div className="room-page">
       <Background environment={environment} />
-      <audio
-        ref={audioRef}
-        className="audio-hidden"
-        crossOrigin="anonymous"
-        onTimeUpdate={onTimeUpdate}
-        onLoadedMetadata={onLoadedMetadata}
+      <YouTubePlayer
+        videoId={current?.videoId}
+        isPlaying={isPlaying}
+        volume={volume}
+        onReady={onReady}
+        onPlay={onPlay}
+        onPause={onPause}
         onEnded={onEnded}
-        onPlay={handlePlay}
+        onError={onError}
       />
       <div className="room-scene">
         <Turntable isPlaying={isPlaying} />
         <Television track={current} />
         <Lamp />
-        <Visualizer audio={audioRef.current} />
+        <Visualizer audio={null} />
       </div>
       <PlaybackPanel tracks={tracks} current={current} onSelect={handleSelect} />
       <BottomBar
@@ -184,7 +176,7 @@ export default function Room() {
         duration={duration}
         onSeek={handleSeek}
         volume={volume}
-        onVolumeChange={setVolume}
+        onVolumeChange={handleVolume}
       />
     </div>
   );

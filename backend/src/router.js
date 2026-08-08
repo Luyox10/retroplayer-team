@@ -171,6 +171,11 @@ export async function handleRequest(req, res) {
       return;
     }
 
+    if (pathname.startsWith('/api/explore/videos/') && method === 'GET') {
+      await getTrack(req, res);
+      return;
+    }
+
     if (pathname === '/api/explore/recommended' && method === 'GET') {
       await getRecommended(req, res);
       return;
