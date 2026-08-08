@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { usePlayer } from '../contexts/PlayerContext';
 import { getRecommended, getTrack } from '../services/exploreService';
 import { getFeatured } from '../services/featuredService';
 import '../styles/Pages.css';
 
 function TrackCard({ track }) {
   const navigate = useNavigate();
+  const { playTrack } = usePlayer();
   const [imgError, setImgError] = React.useState(false);
   const title = track.title || 'Sin título';
   const artist = track.artist || 'Desconocido';
@@ -14,13 +16,15 @@ function TrackCard({ track }) {
 
   const handlePlay = async () => {
     if (track.embedUrl || track.videoId) {
-      navigate('/room', { state: { track } });
+      playTrack(track);
+      navigate('/room');
       return;
     }
     if (track.source === 'youtube' && track.external_track_id) {
       const r = await getTrack(track.external_track_id);
       if (r?.track?.embedUrl) {
-        navigate('/room', { state: { track: r.track } });
+        playTrack(r.track);
+        navigate('/room');
       }
     }
   };
