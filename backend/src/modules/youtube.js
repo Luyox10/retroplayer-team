@@ -79,7 +79,12 @@ export async function searchYouTubeVideos(query, maxResults = 10) {
 
   const cacheKey = `q:${trimmed.toLowerCase()}:n${maxResults}`;
   const cached = await getCached('search', cacheKey, 'youtube');
-  if (cached) return cached;
+  if (cached) {
+    if (Array.isArray(cached)) {
+      return { results: cached, nextPageToken: null };
+    }
+    return cached;
+  }
 
   const searchUrl = buildUrl('/search', {
     part: 'snippet',
@@ -87,6 +92,9 @@ export async function searchYouTubeVideos(query, maxResults = 10) {
     q: trimmed,
     maxResults: String(maxResults),
     videoEmbeddable: 'true',
+    videoCategoryId: '10',
+    regionCode: config.YOUTUBE_REGION_CODE,
+    relevanceLanguage: config.YOUTUBE_DEFAULT_LANGUAGE,
   });
 
   const searchData = await fetchYouTube(searchUrl, 'search', cacheKey);
@@ -94,7 +102,7 @@ export async function searchYouTubeVideos(query, maxResults = 10) {
   const videoIds = items.map(i => i.id?.videoId).filter(Boolean).join(',');
 
   if (!videoIds) {
-    return [];
+    return { results: [], nextPageToken: searchData.nextPageToken || null };
   }
 
   const detailsUrl = buildUrl('/videos', {
@@ -109,8 +117,9 @@ export async function searchYouTubeVideos(query, maxResults = 10) {
     .map(item => detailsById.get(item.id.videoId))
     .filter(Boolean);
 
-  await setCached('search', cacheKey, normalized, 'youtube');
-  return normalized;
+  const result = { results: normalized, nextPageToken: searchData.nextPageToken || null };
+  await setCached('search', cacheKey, result, 'youtube');
+  return result;
 }
 
 export async function getYouTubeVideoDetails(videoId) {

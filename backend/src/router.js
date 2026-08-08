@@ -6,7 +6,7 @@ import { parseJsonBody } from './middleware/parseJsonBody.js';
 import { register, login, logout, me } from './modules/auth.js';
 import { getProfile, updateProfile } from './modules/users.js';
 import { search, getTrack, getRecommended } from './modules/explore.js';
-import { searchYouTubeVideos, getYouTubeVideoDetails } from './modules/youtube.js';
+import { search as youtubeSearch } from './modules/youtube/search.js';
 import { getTrackVideo, createTrackVideo, updateTrackVideo, deleteTrackVideo } from './modules/track_videos.js';
 import { getFavorites, addFavorite, removeFavorite } from './modules/favorites.js';
 import { getHistory, addHistory, updateHistory } from './modules/history.js';
@@ -177,12 +177,7 @@ export async function handleRequest(req, res) {
     }
 
     if (pathname === '/api/youtube/search' && method === 'GET') {
-      const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-      const query = url.searchParams.get('q') || '';
-      const rawMax = url.searchParams.get('maxResults');
-      const maxResults = rawMax ? parseInt(rawMax, 10) : 10;
-      const videos = await searchYouTubeVideos(query, maxResults);
-      sendSuccess(res, 200, { videos, source: 'youtube' });
+      await youtubeSearch(req, res);
       return;
     }
 

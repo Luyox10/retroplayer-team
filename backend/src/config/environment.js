@@ -45,4 +45,6 @@ export const config = Object.freeze({
   JAMENDO_API_URL: process.env.JAMENDO_API_URL || 'https://api.jamendo.com/v3.0',
   YOUTUBE_API_KEY: requiredString('YOUTUBE_API_KEY'),
   YOUTUBE_API_URL: process.env.YOUTUBE_API_URL || 'https://www.googleapis.com/youtube/v3',
+  YOUTUBE_REGION_CODE: process.env.YOUTUBE_REGION_CODE || 'US',
+  YOUTUBE_DEFAULT_LANGUAGE: process.env.YOUTUBE_DEFAULT_LANGUAGE || 'en',
 });
