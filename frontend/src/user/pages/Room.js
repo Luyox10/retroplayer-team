@@ -13,7 +13,7 @@ import '../components/room/RoomObjects.css';
 import '../components/room/RoomEnhanced.css';
 
 export default function Room() {
-  const { current, isPlaying, playerRef, updateTime, playTrack } = usePlayer();
+  const { current, playTrack } = usePlayer();
   const [environment, setEnvironment] = useState(null);
   const [error, setError] = useState(null);
 
@@ -41,15 +41,6 @@ export default function Room() {
       })
       .catch((err) => setError(err.message));
   }, [current, playTrack]);
-
-  useEffect(() => {
-    if (!playerRef?.current || !current || !isPlaying) return;
-    const id = setInterval(() => {
-      const t = playerRef.current.getCurrentTime();
-      if (typeof t === 'number') updateTime(t);
-    }, 1000);
-    return () => clearInterval(id);
-  }, [current, isPlaying, playerRef, updateTime]);
 
   if (error) return <div className="error">{error}</div>;
 

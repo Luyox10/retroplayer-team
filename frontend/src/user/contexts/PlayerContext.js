@@ -13,6 +13,7 @@ export function PlayerProvider({ children }) {
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(1);
   const [error, setError] = useState(null);
+  const [ready, setReady] = useState(false);
   const playerRef = useRef(null);
 
   const playTrack = useCallback((track, playlist = []) => {
@@ -27,6 +28,7 @@ export function PlayerProvider({ children }) {
 
   const setPlayer = useCallback((player) => {
     playerRef.current = player;
+    setReady(true);
   }, []);
 
   const play = useCallback(() => {
@@ -119,8 +121,20 @@ export function PlayerProvider({ children }) {
     if (current) {
       setDuration(current.duration || 0);
       setCurrentTime(0);
+      setReady(false);
     }
   }, [current]);
+
+  useEffect(() => {
+    if (!current || !isPlaying || !ready) return;
+    const id = setInterval(() => {
+      if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
+        const t = playerRef.current.getCurrentTime();
+        if (typeof t === 'number') setCurrentTime(t);
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [current, isPlaying, ready, playerRef, setCurrentTime]);
 
   const value = {
     current,
