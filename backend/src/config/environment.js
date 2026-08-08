@@ -41,8 +41,6 @@ export const config = Object.freeze({
   DB_SSL: toBoolean(process.env.DB_SSL),
   FRONTEND_URL: process.env.FRONTEND_URL || '',
   ADMIN_PANEL_URL: process.env.ADMIN_PANEL_URL || '',
-  JAMENDO_CLIENT_ID: requiredString('JAMENDO_CLIENT_ID'),
-  JAMENDO_API_URL: process.env.JAMENDO_API_URL || 'https://api.jamendo.com/v3.0',
   YOUTUBE_API_KEY: requiredString('YOUTUBE_API_KEY'),
   YOUTUBE_API_URL: process.env.YOUTUBE_API_URL || 'https://www.googleapis.com/youtube/v3',
   YOUTUBE_REGION_CODE: process.env.YOUTUBE_REGION_CODE || 'US',

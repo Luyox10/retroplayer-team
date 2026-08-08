@@ -22,8 +22,8 @@ function validateFeatured(body) {
   if (!external_track_id || !source || !title || !artist || !category || position === undefined || position === null) {
     throw new AppError('external_track_id, source, title, artist, category and position are required', 400, 'VALIDATION_ERROR');
   }
-  if (!['jamendo', 'youtube'].includes(source)) {
-    throw new AppError('source must be jamendo or youtube', 400, 'VALIDATION_ERROR');
+  if (source !== 'youtube') {
+    throw new AppError('source must be youtube', 400, 'VALIDATION_ERROR');
   }
   if (!CATEGORIES.includes(category)) {
     throw new AppError(`category must be one of: ${CATEGORIES.join(', ')}`, 400, 'VALIDATION_ERROR');
@@ -129,7 +129,7 @@ export async function adminUpdateFeaturedTrack(req, res) {
 
   if (body.external_track_id !== undefined) { fields.push('external_track_id = ?'); values.push(body.external_track_id); }
   if (body.source !== undefined) {
-    if (!['jamendo', 'youtube'].includes(body.source)) throw new AppError('source must be jamendo or youtube', 400, 'VALIDATION_ERROR');
+    if (body.source !== 'youtube') throw new AppError('source must be youtube', 400, 'VALIDATION_ERROR');
     fields.push('source = ?'); values.push(body.source);
   }
   if (body.title !== undefined) { fields.push('title = ?'); values.push(body.title); }

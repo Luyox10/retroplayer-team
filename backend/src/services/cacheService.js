@@ -6,7 +6,7 @@ function buildKey(source, type, identifier) {
   return `${source}:${type}:${identifier}`;
 }
 
-export async function getCached(type, identifier, source = 'jamendo', ttlSeconds = DEFAULT_TTL_SECONDS) {
+export async function getCached(type, identifier, source = 'youtube', ttlSeconds = DEFAULT_TTL_SECONDS) {
   const key = buildKey(source, type, identifier);
   const [rows] = await pool.execute(
     'SELECT cache_value, expires_at FROM api_cache WHERE cache_key = ? AND expires_at > NOW()',
@@ -19,7 +19,7 @@ export async function getCached(type, identifier, source = 'jamendo', ttlSeconds
   return null;
 }
 
-export async function setCached(type, identifier, data, source = 'jamendo', ttlSeconds = DEFAULT_TTL_SECONDS) {
+export async function setCached(type, identifier, data, source = 'youtube', ttlSeconds = DEFAULT_TTL_SECONDS) {
   const key = buildKey(source, type, identifier);
   const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
   await pool.execute(

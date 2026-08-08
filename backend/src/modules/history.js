@@ -48,8 +48,8 @@ export async function addHistory(req, res) {
   if (!external_track_id || !source) {
     throw new AppError('external_track_id and source are required', 400, 'VALIDATION_ERROR');
   }
-  if (!['jamendo', 'youtube'].includes(source)) {
-    throw new AppError('source must be jamendo or youtube', 400, 'VALIDATION_ERROR');
+  if (source !== 'youtube') {
+    throw new AppError('source must be youtube', 400, 'VALIDATION_ERROR');
   }
 
   const [result] = await pool.execute(
