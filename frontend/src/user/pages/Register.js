@@ -33,28 +33,30 @@ export default function Register() {
 
   return (
     <div className="page">
-      <h2>Registro</h2>
-      {error && <div className="error">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Nombre visible</label>
-          <input className="input" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label>Email</label>
-          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </div>
-        <div className="form-group">
-          <label>Usuario</label>
-          <input className="input" type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
-        </div>
-        <div className="form-group">
-          <label>Contraseña</label>
-          <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </div>
-        <button className="btn" type="submit" disabled={loading}>Registrarse</button>
-        <p><a href="#/login">¿Ya tienes cuenta? Entra</a></p>
-      </form>
+      <div className="auth-panel">
+        <h2>Registro</h2>
+        {error && <div className="error">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Nombre visible</label>
+            <input className="input" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label>Email</label>
+            <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label>Usuario</label>
+            <input className="input" type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label>Contraseña</label>
+            <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          </div>
+          <button className="btn" type="submit" disabled={loading}>Registrarse</button>
+          <p><a href="#/login">¿Ya tienes cuenta? Entra</a></p>
+        </form>
+      </div>
     </div>
   );
 }

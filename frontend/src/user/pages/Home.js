@@ -31,17 +31,49 @@ function TrackCard({ track }) {
 
   return (
     <div className="card track-card" onClick={handlePlay} role="button" tabIndex={0}>
-      {hasCover ? (
-        <img src={cover} alt={title} onError={() => setImgError(true)} />
-      ) : (
-        <div className="cover-placeholder">
-          <span>{title[0]}</span>
-          <p>{artist}</p>
-        </div>
-      )}
-      <h3>{title}</h3>
-      <p>{artist}</p>
+      <div className="card-media">
+        {hasCover ? (
+          <img src={cover} alt={title} onError={() => setImgError(true)} />
+        ) : (
+          <div className="cover-placeholder">
+            <span>{title[0]}</span>
+            <p>{artist}</p>
+          </div>
+        )}
+      </div>
+      <div className="card-body">
+        <h3>{title}</h3>
+        <p>{artist}</p>
+      </div>
     </div>
+  );
+}
+
+function Section({ title, children }) {
+  return (
+    <section className="section">
+      <div className="section-header">
+        <h2>{title}</h2>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Hero() {
+  const navigate = useNavigate();
+  return (
+    <section className="hero" aria-label="Bienvenida">
+      <div className="hero-glow hero-glow-1" aria-hidden="true" />
+      <div className="hero-glow hero-glow-2" aria-hidden="true" />
+      <div className="hero-content">
+        <h1>Descubre tu sonido retro</h1>
+        <p className="hero-subtitle">Explora canciones, crea tu espacio y vive la música con estilo.</p>
+        <button className="btn btn-hero" onClick={() => navigate('/explore')} type="button">
+          Explorar música
+        </button>
+      </div>
+    </section>
   );
 }
 
@@ -61,20 +93,35 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="loading">Cargando...</div>;
-  if (error) return <div className="error">{error}</div>;
+  if (loading) {
+    return (
+      <div className="page home-page">
+        <div className="loading">Cargando...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page home-page">
+        <div className="error">{error}</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="page">
-      <h2>Inicio</h2>
-      <h3>Destacados</h3>
-      <div className="grid">
-        {featured.length > 0 ? featured.map((t) => <TrackCard key={`${t.source}-${t.external_track_id || t.id}`} track={t} />) : <p className="empty">Sin destacados</p>}
-      </div>
-      <h3>Recomendados</h3>
-      <div className="grid">
-        {recommended.length > 0 ? recommended.map((t) => <TrackCard key={`${t.source}-${t.externalId || t.id}`} track={t} />) : <p className="empty">Sin recomendaciones</p>}
-      </div>
+    <div className="page home-page">
+      <Hero />
+      <Section title="Destacados">
+        <div className="grid">
+          {featured.length > 0 ? featured.map((t) => <TrackCard key={`${t.source}-${t.external_track_id || t.id}`} track={t} />) : <p className="empty">Sin destacados</p>}
+        </div>
+      </Section>
+      <Section title="Recomendados">
+        <div className="grid">
+          {recommended.length > 0 ? recommended.map((t) => <TrackCard key={`${t.source}-${t.externalId || t.id}`} track={t} />) : <p className="empty">Sin recomendaciones</p>}
+        </div>
+      </Section>
     </div>
   );
 }

@@ -22,16 +22,20 @@ function TrackCard({ track }) {
 
   return (
     <div className="card track-card" onClick={handlePlay} role="button" tabIndex={0}>
-      {hasCover ? (
-        <img src={cover} alt={title} onError={() => setImgError(true)} />
-      ) : (
-        <div className="cover-placeholder">
-          <span>{title[0]}</span>
-          <p>{artist}</p>
-        </div>
-      )}
-      <h3>{title}</h3>
-      <p>{artist}</p>
+      <div className="card-media">
+        {hasCover ? (
+          <img src={cover} alt={title} onError={() => setImgError(true)} />
+        ) : (
+          <div className="cover-placeholder">
+            <span>{title[0]}</span>
+            <p>{artist}</p>
+          </div>
+        )}
+      </div>
+      <div className="card-body">
+        <h3>{title}</h3>
+        <p>{artist}</p>
+      </div>
     </div>
   );
 }

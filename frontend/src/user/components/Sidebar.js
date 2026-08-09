@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import './Layout.css';
 
 const links = [
@@ -11,13 +12,20 @@ const links = [
 ];
 
 export default function Sidebar() {
+  const location = useLocation();
+
   return (
     <aside className="sidebar">
       <nav>
         <ul>
           {links.map((link) => (
             <li key={link.to}>
-              <a href={`#${link.to}`}>{link.label}</a>
+              <a
+                href={`#${link.to}`}
+                className={location.pathname === link.to ? 'active' : ''}
+              >
+                {link.label}
+              </a>
             </li>
           ))}
         </ul>

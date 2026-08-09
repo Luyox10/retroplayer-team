@@ -31,20 +31,22 @@ export default function Login() {
 
   return (
     <div className="page">
-      <h2>Iniciar sesión</h2>
-      {error && <div className="error">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Email</label>
-          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </div>
-        <div className="form-group">
-          <label>Contraseña</label>
-          <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </div>
-        <button className="btn" type="submit" disabled={loading}>Entrar</button>
-        <p><a href="#/register">¿No tienes cuenta? Regístrate</a></p>
-      </form>
+      <div className="auth-panel">
+        <h2>Iniciar sesión</h2>
+        {error && <div className="error">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Email</label>
+            <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+          <div className="form-group">
+            <label>Contraseña</label>
+            <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          </div>
+          <button className="btn" type="submit" disabled={loading}>Entrar</button>
+          <p><a href="#/register">¿No tienes cuenta? Regístrate</a></p>
+        </form>
+      </div>
     </div>
   );
 }
