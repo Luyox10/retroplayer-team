@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { addHistory } from '../services/libraryService';
+import { toPlayerTrack, getExternalId, getTrackImage, isSameTrack } from '../../shared/utils/contentHelpers';
 
 const PlayerContext = createContext(null);
 
@@ -18,11 +19,15 @@ export function PlayerProvider({ children }) {
 
   const playTrack = useCallback((track, playlist = []) => {
     setError(null);
-    setCurrent(track);
-    const deduped = playlist.filter((t) => t.externalId !== track.externalId);
-    setTracks([track, ...deduped]);
+    const normalized = toPlayerTrack(track);
+    setCurrent(normalized);
+    const deduped = playlist
+      .map(toPlayerTrack)
+      .filter(Boolean)
+      .filter((t) => !isSameTrack(t, normalized));
+    setTracks([normalized, ...deduped]);
     setCurrentTime(0);
-    setDuration(track.duration || 0);
+    setDuration(normalized.duration || 0);
     setIsPlaying(true);
   }, []);
 
@@ -61,7 +66,7 @@ export function PlayerProvider({ children }) {
 
   const handleNext = useCallback(() => {
     if (!current || !tracks.length) return;
-    const index = tracks.findIndex((t) => t.externalId === current.externalId);
+    const index = tracks.findIndex((t) => isSameTrack(t, current));
     const nextIndex = (index + 1) % tracks.length;
     const next = tracks[nextIndex];
     if (next) {
@@ -74,7 +79,7 @@ export function PlayerProvider({ children }) {
 
   const handlePrev = useCallback(() => {
     if (!current || !tracks.length) return;
-    const index = tracks.findIndex((t) => t.externalId === current.externalId);
+    const index = tracks.findIndex((t) => isSameTrack(t, current));
     const prevIndex = (index - 1 + tracks.length) % tracks.length;
     const prev = tracks[prevIndex];
     if (prev) {
@@ -90,11 +95,11 @@ export function PlayerProvider({ children }) {
     if (user && current) {
       try {
         addHistory({
-          external_track_id: String(current.externalId),
-          source: current.source,
+          external_track_id: String(getExternalId(current)),
+          source: current.source?.provider || 'youtube',
           title: current.title,
           artist: current.artist,
-          cover_url: current.thumbnail,
+          cover_url: getTrackImage(current),
           duration_seconds: current.duration,
         });
       } catch (e) {

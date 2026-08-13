@@ -2,6 +2,7 @@ import { pool } from '../database/pool.js';
 import { AppError } from '../utils/errors.js';
 import { sendSuccess } from '../utils/response.js';
 import { requireAuth } from '../middleware/authenticate.js';
+import { recordPlay } from '../services/preferencesService.js';
 
 function getBaseUrl(req) {
   return `http://${req.headers.host || 'localhost'}`;
@@ -48,8 +49,9 @@ export async function addHistory(req, res) {
   if (!external_track_id || !source) {
     throw new AppError('external_track_id and source are required', 400, 'VALIDATION_ERROR');
   }
-  if (source !== 'youtube') {
-    throw new AppError('source must be youtube', 400, 'VALIDATION_ERROR');
+  const ALLOWED_SOURCES = ['youtube'];
+  if (!ALLOWED_SOURCES.includes(source)) {
+    throw new AppError(`source must be one of: ${ALLOWED_SOURCES.join(', ')}`, 400, 'VALIDATION_ERROR');
   }
 
   const [result] = await pool.execute(
@@ -57,6 +59,13 @@ export async function addHistory(req, res) {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [user.id, external_track_id, source, title || null, artist || null, cover_url || null, duration_seconds || 0, listened_seconds || 0, toBoolean(completed)]
   );
+
+  // Record play for preference learning (non-blocking)
+  recordPlay(user.id, {
+    externalId: external_track_id,
+    source: { provider: source, id: external_track_id },
+    artist: artist || '',
+  }).catch(() => {});
 
   sendSuccess(res, 201, { id: result.insertId }, 'History entry created');
 }

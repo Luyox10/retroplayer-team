@@ -1,6 +1,7 @@
 import React from 'react';
 import { usePlayer } from '../../contexts/PlayerContext';
 import { addFavorite } from '../../services/libraryService';
+import { getExternalId, getTrackImage } from '../../../shared/utils/contentHelpers';
 import './RoomObjects.css';
 
 export default function BottomBar() {
@@ -21,11 +22,11 @@ export default function BottomBar() {
     if (!current) return;
     try {
       await addFavorite({
-        external_track_id: String(current.externalId),
-        source: current.source,
+        external_track_id: String(getExternalId(current)),
+        source: current.source?.provider || 'youtube',
         title: current.title,
         artist: current.artist,
-        cover_url: current.thumbnail,
+        cover_url: getTrackImage(current),
       });
     } catch (e) {
       // no-op

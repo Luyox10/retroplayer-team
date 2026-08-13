@@ -7,6 +7,14 @@ import { register, login, logout, me } from './modules/auth.js';
 import { getProfile, updateProfile } from './modules/users.js';
 import { search, getTrack, getRecommended } from './modules/explore.js';
 import { search as youtubeSearch } from './modules/youtube/search.js';
+import { searchAll as searchAllContent } from './modules/search.js';
+import { getTrackById } from './modules/tracks.js';
+import { getArtist, getArtistTracks, getArtistAlbums, getArtistTop } from './modules/artists.js';
+import { getAlbum, getAlbumTracks } from './modules/albums.js';
+import { getHome } from './modules/home.js';
+import { listGenres, getGenreTracks } from './modules/genresApi.js';
+import { getExplorePage } from './modules/exploreApi.js';
+import { getPreferences, getGenrePreferences, updateGenrePreferences } from './modules/preferences.js';
 import { getTrackVideo, createTrackVideo, updateTrackVideo, deleteTrackVideo } from './modules/track_videos.js';
 import { getFavorites, addFavorite, removeFavorite } from './modules/favorites.js';
 import { getHistory, addHistory, updateHistory } from './modules/history.js';
@@ -161,6 +169,59 @@ export async function handleRequest(req, res) {
       return;
     }
 
+    // --- Home & Genres (FASE 2) ---
+
+    if (pathname === '/api/home' && method === 'GET') {
+      await getHome(req, res);
+      return;
+    }
+
+    if (pathname === '/api/genres' && method === 'GET') {
+      await listGenres(req, res);
+      return;
+    }
+
+    const genreTracksMatch = pathname.match(/^\/api\/genres\/([^\/]+)\/tracks$/);
+    if (genreTracksMatch && method === 'GET') {
+      await getGenreTracks(req, res);
+      return;
+    }
+
+    // --- Providers (FASE 6) ---
+
+    if (pathname === '/api/providers' && method === 'GET') {
+      const { getAvailableProviders, getDefaultProvider } = await import('./services/contentService.js');
+      sendSuccess(res, 200, {
+        providers: getAvailableProviders(),
+        default: getDefaultProvider(),
+      });
+      return;
+    }
+
+    // --- Preferences (FASE 5) ---
+
+    if (pathname === '/api/preferences' && method === 'GET') {
+      await getPreferences(req, res);
+      return;
+    }
+
+    if (pathname === '/api/preferences/genres' && method === 'GET') {
+      await getGenrePreferences(req, res);
+      return;
+    }
+
+    if (pathname === '/api/preferences/genres' && method === 'PUT') {
+      await updateGenrePreferences(req, res);
+      return;
+    }
+
+    // --- Explore ---
+
+    if (pathname === '/api/explore/page' && method === 'GET') {
+      await getExplorePage(req, res);
+      return;
+    }
+
     if (pathname === '/api/explore' && method === 'GET') {
       await search(req, res);
       return;
@@ -185,6 +246,60 @@ export async function handleRequest(req, res) {
       await youtubeSearch(req, res);
       return;
     }
+
+    // --- New content API endpoints (FASE 1) ---
+
+    if (pathname === '/api/search' && method === 'GET') {
+      await searchAllContent(req, res);
+      return;
+    }
+
+    // Artist endpoints: /api/artists/:id, /api/artists/:id/tracks, /api/artists/:id/albums, /api/artists/:id/top
+    const artistTopMatch = pathname.match(/^\/api\/artists\/([^\/]+)\/top$/);
+    if (artistTopMatch && method === 'GET') {
+      await getArtistTop(req, res);
+      return;
+    }
+
+    const artistTracksMatch = pathname.match(/^\/api\/artists\/([^\/]+)\/tracks$/);
+    if (artistTracksMatch && method === 'GET') {
+      await getArtistTracks(req, res);
+      return;
+    }
+
+    const artistAlbumsMatch = pathname.match(/^\/api\/artists\/([^\/]+)\/albums$/);
+    if (artistAlbumsMatch && method === 'GET') {
+      await getArtistAlbums(req, res);
+      return;
+    }
+
+    const artistMatch = pathname.match(/^\/api\/artists\/([^\/]+)$/);
+    if (artistMatch && method === 'GET') {
+      await getArtist(req, res);
+      return;
+    }
+
+    // Album endpoints: /api/albums/:id, /api/albums/:id/tracks
+    const albumTracksMatch = pathname.match(/^\/api\/albums\/([^\/]+)\/tracks$/);
+    if (albumTracksMatch && method === 'GET') {
+      await getAlbumTracks(req, res);
+      return;
+    }
+
+    const albumMatch = pathname.match(/^\/api\/albums\/([^\/]+)$/);
+    if (albumMatch && method === 'GET') {
+      await getAlbum(req, res);
+      return;
+    }
+
+    // Track endpoint: /api/tracks/:id (get track by content ID)
+    const trackByIdMatch = pathname.match(/^\/api\/tracks\/([^\/]+)$/);
+    if (trackByIdMatch && method === 'GET') {
+      await getTrackById(req, res);
+      return;
+    }
+
+    // --- End new content API endpoints ---
 
     const trackVideoMatch = pathname.match(/^\/api\/tracks\/([^\/]+)\/([^\/]+)\/video$/);
     if (trackVideoMatch && method === 'GET') {

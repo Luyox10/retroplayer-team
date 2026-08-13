@@ -1,5 +1,6 @@
 import React from 'react';
 import { usePlayer } from '../../contexts/PlayerContext';
+import { getExternalId, isSameTrack } from '../../../shared/utils/contentHelpers';
 import './RoomObjects.css';
 
 export default function PlaybackPanel() {
@@ -10,8 +11,8 @@ export default function PlaybackPanel() {
       <ul>
         {tracks.map((track, index) => (
           <li
-            key={`${track.source}-${track.externalId || index}`}
-            className={current?.externalId === track.externalId ? 'active-track' : ''}
+            key={`${getExternalId(track) || index}`}
+            className={isSameTrack(current, track) ? 'active-track' : ''}
             onClick={() => playTrack(track, tracks)}
           >
             {track.title} — {track.artist}

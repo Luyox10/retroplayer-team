@@ -1,18 +1,20 @@
 import React from 'react';
 import { usePlayer } from '../../contexts/PlayerContext';
+import { getExternalId } from '../../../shared/utils/contentHelpers';
 import YouTubePlayer from './YouTubePlayer';
 import './RoomObjects.css';
 
 export default function Television() {
   const { current, isPlaying, volume, onReady, onPlay, onPause, onEnded, onError } = usePlayer();
+  const videoId = current ? getExternalId(current) : null;
 
   return (
     <div className="television">
       <div className="tv-screen">
-        {current ? (
+        {current && videoId ? (
           <>
             <YouTubePlayer
-              videoId={current.videoId}
+              videoId={videoId}
               isPlaying={isPlaying}
               volume={volume}
               onReady={onReady}

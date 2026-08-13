@@ -4,6 +4,7 @@ import MainLayout from '../layouts/MainLayout';
 import RequireAuth from './RequireAuth';
 import Home from '../pages/Home';
 import Explore from '../pages/Explore';
+import ArtistPage from '../pages/ArtistPage';
 import Library from '../pages/Library';
 import Store from '../pages/Store';
 import Profile from '../pages/Profile';
@@ -18,6 +19,7 @@ export default function AppRouter() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/explore" element={<Explore />} />
+          <Route path="/artist/:id" element={<ArtistPage />} />
           <Route path="/library" element={<RequireAuth><Library /></RequireAuth>} />
           <Route path="/store" element={<RequireAuth><Store /></RequireAuth>} />
           <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />

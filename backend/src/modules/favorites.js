@@ -2,6 +2,7 @@ import { pool } from '../database/pool.js';
 import { AppError } from '../utils/errors.js';
 import { sendSuccess } from '../utils/response.js';
 import { requireAuth } from '../middleware/authenticate.js';
+import { recordFavorite } from '../services/preferencesService.js';
 
 function getBaseUrl(req) {
   return `http://${req.headers.host || 'localhost'}`;
@@ -44,8 +45,9 @@ export async function addFavorite(req, res) {
   if (!external_track_id || !source) {
     throw new AppError('external_track_id and source are required', 400, 'VALIDATION_ERROR');
   }
-  if (source !== 'youtube') {
-    throw new AppError('source must be youtube', 400, 'VALIDATION_ERROR');
+  const ALLOWED_SOURCES = ['youtube'];
+  if (!ALLOWED_SOURCES.includes(source)) {
+    throw new AppError(`source must be one of: ${ALLOWED_SOURCES.join(', ')}`, 400, 'VALIDATION_ERROR');
   }
 
   await pool.execute(
@@ -54,6 +56,13 @@ export async function addFavorite(req, res) {
      ON DUPLICATE KEY UPDATE title = VALUES(title), artist = VALUES(artist), cover_url = VALUES(cover_url)`,
     [user.id, external_track_id, source, title || null, artist || null, cover_url || null]
   );
+
+  // Record favorite for preference learning (non-blocking)
+  recordFavorite(user.id, {
+    external_track_id,
+    source: { provider: source, id: external_track_id },
+    artist: artist || '',
+  }).catch(() => {});
 
   sendSuccess(res, 201, null, 'Favorite added');
 }

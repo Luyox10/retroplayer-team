@@ -12,3 +12,8 @@ export function getRecommended(limit = 20) {
 export function getTrack(externalId) {
   return request(`/api/explore/videos/${encodeURIComponent(externalId)}`);
 }
+
+export function search(query, limit = 10) {
+  const params = new URLSearchParams({ q: query || '', limit: String(limit) });
+  return request(`/api/search?${params.toString()}`);
+}
