@@ -3,8 +3,8 @@
 -- Description: Creates table for tracking user music preferences (genre weights, favorite artists, etc.)
 
 CREATE TABLE IF NOT EXISTS user_preferences (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
   preference_type VARCHAR(50) NOT NULL COMMENT 'genre, artist, track',
   preference_key VARCHAR(100) NOT NULL COMMENT 'genre slug, artist ID, track ID',
   preference_value DECIMAL(5,2) DEFAULT 1.00 COMMENT 'Weight/score 0.00 - 10.00',
