@@ -240,21 +240,24 @@ export async function getPlaylistDetails(playlistId) {
 /**
  * Get items from a playlist (used for album tracks)
  */
-export async function getPlaylistItems(playlistId, maxResults = 25) {
+export async function getPlaylistItems(playlistId, maxResults = 50, pageToken = '') {
   if (!playlistId) {
     throw new AppError('Playlist ID is required', 400, 'VALIDATION_ERROR');
   }
   const limit = Math.min(Math.max(maxResults, 1), 50);
 
-  const cacheKey = `playlist-items:${playlistId}:${limit}`;
+  const cacheKey = `playlist-items:${playlistId}:${limit}:${pageToken}`;
   const cached = await getCached('yt-playlist', cacheKey, 'youtube');
   if (cached) return cached;
 
-  const url = buildUrl('/playlistItems', {
+  const params = {
     part: 'snippet,contentDetails',
     playlistId,
     maxResults: String(limit),
-  });
+  };
+  if (pageToken) params.pageToken = pageToken;
+
+  const url = buildUrl('/playlistItems', params);
 
   const data = await fetchYouTube(url);
   const items = data.items || [];
@@ -273,7 +276,21 @@ export async function getPlaylistItems(playlistId, maxResults = 25) {
   });
 
   const detailsData = await fetchYouTube(detailsUrl);
-  const detailItems = (detailsData.items || []).filter(item => item.status?.embeddable !== false);
+  const validDetails = (detailsData.items || []).filter(
+    item =>
+      item.status?.embeddable !== false &&
+      item.status?.privacyStatus !== 'private'
+  );
+  const detailsById = new Map(validDetails.map(v => [v.id, v]));
+
+  // Preserve playlist order and position
+  const detailItems = items.map((plItem, idx) => {
+    const videoId = plItem.contentDetails?.videoId;
+    const detail = detailsById.get(videoId);
+    if (!detail) return null;
+    detail.position = plItem.snippet?.position ?? idx;
+    return detail;
+  }).filter(Boolean);
 
   const result = { items: detailItems, nextPageToken: data.nextPageToken || null };
   await setCached('yt-playlist', cacheKey, result, 'youtube');

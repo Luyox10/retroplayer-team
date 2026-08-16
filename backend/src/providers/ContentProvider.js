@@ -127,9 +127,10 @@ export class ContentProvider {
   /**
    * Get tracks from an album.
    * @param {string} albumExternalId
-   * @returns {Promise<{tracks: Track[]}>}
+   * @param {object} options - { limit, pageToken, ... }
+   * @returns {Promise<{tracks: Track[], nextPageToken: string|null}>}
    */
-  async getAlbumTracks(albumExternalId) {
+  async getAlbumTracks(albumExternalId, options = {}) {
     throw new Error('Provider must implement getAlbumTracks()');
   }
 

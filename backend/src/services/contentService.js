@@ -127,9 +127,9 @@ export async function getAlbum(contentId) {
 /**
  * Get tracks from an album
  */
-export async function getAlbumTracks(contentId) {
+export async function getAlbumTracks(contentId, options = {}) {
   const { provider, id } = parseContentId(contentId);
-  return getProvider(provider).getAlbumTracks(id);
+  return getProvider(provider).getAlbumTracks(id, options);
 }
 
 /**

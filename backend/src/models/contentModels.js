@@ -43,10 +43,11 @@ export function createAlbum({ id, name, artistId = null, artistName = null, year
  * @property {string|null} albumId
  * @property {number} duration - Duration in seconds
  * @property {string|null} image - Thumbnail/cover URL
+ * @property {number|null} position - Position inside a playlist/album
  * @property {ContentSource} source
  */
-export function createTrack({ id, title, artist = null, artistId = null, album = null, albumId = null, duration = 0, image = null, viewCount = 0, source }) {
-  return { id, title, artist, artistId, album, albumId, duration, image, viewCount, source };
+export function createTrack({ id, title, artist = null, artistId = null, album = null, albumId = null, duration = 0, image = null, viewCount = 0, position = null, source }) {
+  return { id, title, artist, artistId, album, albumId, duration, image, viewCount, position, source };
 }
 
 /**

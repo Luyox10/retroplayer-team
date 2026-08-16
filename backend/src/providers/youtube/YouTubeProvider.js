@@ -100,13 +100,15 @@ export class YouTubeProvider extends ContentProvider {
     return { albums };
   }
 
-  async getAlbumTracks(albumExternalId) {
-    const data = await adapter.getPlaylistItems(albumExternalId, 25);
+  async getAlbumTracks(albumExternalId, options = {}) {
+    const limit = Math.min(Math.max(options.limit || 50, 1), 50);
+    const pageToken = options.pageToken || '';
+    const data = await adapter.getPlaylistItems(albumExternalId, limit, pageToken);
     const tracks = (data.items || [])
       .map(normalizeVideoToTrack)
       .filter(Boolean);
 
-    return { tracks };
+    return { tracks, nextPageToken: data.nextPageToken || null };
   }
 
   async getAlbum(externalId) {

@@ -108,6 +108,7 @@ export function normalizeVideoToTrack(item) {
     duration: parseISO8601Duration(contentDetails.duration),
     image: extractThumbnail(snippet),
     viewCount: Number(item.statistics?.viewCount || 0),
+    position: item.position != null ? Number(item.position) : null,
     source: createSource('youtube', videoId),
   });
 }
