@@ -126,18 +126,18 @@ export default function ArtistPage() {
 
     const artistId = id;
 
-    // Fetch all data in parallel
-    Promise.all([
-      getArtist(artistId).catch(() => null),
-      getArtistTop(artistId, 5).catch(() => ({ tracks: [] })),
-      getArtistAlbums(artistId, 10).catch(() => ({ albums: [] })),
-    ])
-      .then(([artistData, topData, albumsData]) => {
-        if (artistData?.artist) {
-          setArtist(artistData.artist);
-        }
-        setTopTracks(topData?.tracks || []);
-        setAlbums(albumsData?.albums || []);
+    getArtist(artistId)
+      .then((artistData) => {
+        const artistName = artistData?.artist?.name;
+        if (artistData?.artist) setArtist(artistData.artist);
+
+        return Promise.all([
+          getArtistTop(artistId, 5).catch(() => ({ tracks: [] })),
+          getArtistAlbums(artistId, 10, artistName).catch(() => ({ albums: [] })),
+        ]).then(([topData, albumsData]) => {
+          setTopTracks(topData?.tracks || []);
+          setAlbums(albumsData?.albums || []);
+        });
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));

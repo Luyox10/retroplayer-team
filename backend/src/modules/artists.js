@@ -43,6 +43,13 @@ export async function getArtistAlbums(req, res) {
   const url = new URL(req.url, getBaseUrl(req));
   const artistId = extractArtistId(req);
   const limit = parseLimit(url);
+  const artistName = url.searchParams.get('artistName');
+
+  if (artistName) {
+    const { artist, albums } = await contentService.getDiscography(artistName, limit);
+    sendSuccess(res, 200, { artist, albums });
+    return;
+  }
 
   const { albums } = await contentService.getArtistAlbums(artistId, limit);
   sendSuccess(res, 200, { albums });

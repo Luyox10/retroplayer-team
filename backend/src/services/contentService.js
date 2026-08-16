@@ -19,6 +19,7 @@
  */
 
 import { YouTubeProvider } from '../providers/youtube/YouTubeProvider.js';
+import { MusicBrainzProvider } from '../providers/musicbrainz/MusicBrainzProvider.js';
 import { parseContentId } from '../models/contentModels.js';
 
 // Provider registry
@@ -55,6 +56,7 @@ function getProvider(name = DEFAULT_PROVIDER) {
 
 // Initialize built-in providers
 registerProvider('youtube', new YouTubeProvider());
+registerProvider('musicbrainz', new MusicBrainzProvider());
 
 /**
  * Search for tracks across providers
@@ -114,6 +116,13 @@ export async function getArtistTracks(contentId, limit = 10) {
 export async function getArtistAlbums(contentId, limit = 10) {
   const { provider, id } = parseContentId(contentId);
   return getProvider(provider).getArtistAlbums(id, limit);
+}
+
+/**
+ * Get discography for an artist by name (MusicBrainz)
+ */
+export async function getDiscography(artistName, limit = 10) {
+  return getProvider('musicbrainz').getDiscography(artistName, limit);
 }
 
 /**

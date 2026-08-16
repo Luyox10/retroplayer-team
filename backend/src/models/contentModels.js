@@ -26,11 +26,12 @@ export function createArtist({ id, name, image = null, description = null, subsc
  * @property {string|null} artistId
  * @property {string|null} artistName
  * @property {number|null} year
+ * @property {number|null} trackCount
  * @property {string|null} image
  * @property {ContentSource} source
  */
-export function createAlbum({ id, name, artistId = null, artistName = null, year = null, image = null, source }) {
-  return { id, name, artistId, artistName, year, image, source };
+export function createAlbum({ id, name, artistId = null, artistName = null, year = null, trackCount = null, image = null, source }) {
+  return { id, name, artistId, artistName, year, trackCount, image, source };
 }
 
 /**
@@ -44,10 +45,11 @@ export function createAlbum({ id, name, artistId = null, artistName = null, year
  * @property {number} duration - Duration in seconds
  * @property {string|null} image - Thumbnail/cover URL
  * @property {number|null} position - Position inside a playlist/album
+ * @property {number|null} discNumber - Disc number for multi-disc albums
  * @property {ContentSource} source
  */
-export function createTrack({ id, title, artist = null, artistId = null, album = null, albumId = null, duration = 0, image = null, viewCount = 0, position = null, source }) {
-  return { id, title, artist, artistId, album, albumId, duration, image, viewCount, position, source };
+export function createTrack({ id, title, artist = null, artistId = null, album = null, albumId = null, duration = 0, image = null, viewCount = 0, position = null, discNumber = null, source }) {
+  return { id, title, artist, artistId, album, albumId, duration, image, viewCount, position, discNumber, source };
 }
 
 /**

@@ -41,8 +41,9 @@ export function getArtistTracks(artistId, limit = 10) {
   return request(`/api/artists/${encodeURIComponent(artistId)}/tracks?${params.toString()}`);
 }
 
-export function getArtistAlbums(artistId, limit = 10) {
+export function getArtistAlbums(artistId, limit = 10, artistName = '') {
   const params = new URLSearchParams({ limit: String(limit) });
+  if (artistName) params.set('artistName', artistName);
   return request(`/api/artists/${encodeURIComponent(artistId)}/albums?${params.toString()}`);
 }
 
