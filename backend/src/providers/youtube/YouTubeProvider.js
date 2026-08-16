@@ -74,8 +74,7 @@ export class YouTubeProvider extends ContentProvider {
     // Fetch playlists belonging to the artist's channel and keep the ones
     // that look like real studio albums (not live, sessions, mixes, etc.)
     const data = await adapter.getChannelPlaylists(channelId, 25);
-    const channel = await adapter.getChannelDetails(channelId);
-    const channelTitle = channel?.snippet?.title || null;
+    // Each playlist snippet already contains channelTitle; avoid a duplicate channelDetails call
 
     const nonAlbumWords = [
       'live', 'session', 'shorts', 'mix', 'compilation', 'greatest hits',
@@ -93,7 +92,7 @@ export class YouTubeProvider extends ContentProvider {
       })
       // Prioritize fuller playlists (real albums usually have more tracks)
       .sort((a, b) => (b.contentDetails?.itemCount || 0) - (a.contentDetails?.itemCount || 0))
-      .map(item => normalizePlaylistToAlbum(item, channelTitle))
+      .map(item => normalizePlaylistToAlbum(item, item?.snippet?.channelTitle))
       .filter(Boolean)
       .slice(0, limit);
 
