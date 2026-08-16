@@ -2,27 +2,33 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePlayer } from '../contexts/PlayerContext';
 import { getAlbum, getAlbumTracks } from '../services/contentService';
-import { getTrackImage, getExternalId } from '../../shared/utils/contentHelpers';
+import { getExternalId } from '../../shared/utils/contentHelpers';
 import '../styles/Pages.css';
 
-function TrackListItem({ track, index, onPlay }) {
+function AlbumTrackItem({ track, index, onPlay }) {
   const title = track.title || 'Sin titulo';
   const artist = track.artist || 'Desconocido';
-  const cover = getTrackImage(track);
   const duration = track.duration || 0;
   const mins = Math.floor(duration / 60);
   const secs = Math.floor(duration % 60).toString().padStart(2, '0');
+  const position = track.position != null ? track.position + 1 : index + 1;
 
   return (
-    <div className="track-list-item" onClick={onPlay} role="button" tabIndex={0}>
-      <span className="track-list-rank">{index + 1}</span>
-      {cover && <img className="track-list-cover" src={cover} alt={title} />}
-      <div className="track-list-info">
-        <strong>{title}</strong>
-        <span>{artist}</span>
+    <div
+      className="album-track-item"
+      onClick={onPlay}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') onPlay(); }}
+    >
+      <span className="album-track-number">{position}</span>
+      <span className="album-track-play">▶</span>
+      <div className="album-track-info">
+        <strong className="album-track-title">{title}</strong>
+        <span className="album-track-artist">{artist}</span>
       </div>
       {duration > 0 && (
-        <span className="track-list-duration">{mins}:{secs}</span>
+        <span className="album-track-duration">{mins}:{secs}</span>
       )}
     </div>
   );
@@ -45,10 +51,11 @@ export default function AlbumPage() {
 
     Promise.all([
       getAlbum(id).catch(() => null),
-      getAlbumTracks(id).catch(() => ({ tracks: [] })),
+      getAlbumTracks(id).catch(() => ({ tracks: [], album: null })),
     ])
       .then(([albumData, tracksData]) => {
         if (albumData?.album) setAlbum(albumData.album);
+        else if (tracksData?.album) setAlbum(tracksData.album);
         setTracks(tracksData?.tracks || []);
       })
       .catch((err) => setError(err.message))
@@ -81,28 +88,28 @@ export default function AlbumPage() {
   return (
     <div className="page album-page">
       {album && (
-        <div className="artist-header">
-          {album?.image && (
-            <div className="artist-image">
+        <div className="album-hero">
+          {album?.image ? (
+            <div className="album-cover">
               <img src={album.image} alt={album.name} />
             </div>
+          ) : (
+            <div className="album-cover album-cover-placeholder" />
           )}
-          <div className="artist-info">
-            <h1 className="artist-name">{album?.name || 'Album'}</h1>
-            {album?.artistName && <p className="artist-description">{album.artistName}</p>}
+          <div className="album-meta">
+            <h1 className="album-title">{album?.name || 'Album'}</h1>
+            {album?.artistName && <p className="album-artist">{album.artistName}</p>}
             {album?.year && <p className="album-year">{album.year}</p>}
           </div>
         </div>
       )}
 
-      {tracks.length > 0 && (
-        <section className="section">
-          <div className="section-header">
-            <h2>Canciones del album</h2>
-          </div>
-          <div className="top-tracks-list">
+      {tracks.length > 0 ? (
+        <section className="album-tracks-section">
+          <h2 className="album-tracks-heading">Canciones</h2>
+          <div className="album-tracks-list">
             {tracks.map((track, i) => (
-              <TrackListItem
+              <AlbumTrackItem
                 key={getExternalId(track) || `album-track-${i}`}
                 track={track}
                 index={i}
@@ -111,9 +118,11 @@ export default function AlbumPage() {
             ))}
           </div>
         </section>
+      ) : (
+        <p className="empty">No se encontraron canciones en este album</p>
       )}
 
-      {(!album && !loading) && <p className="empty">No se encontro el album</p>}
+      {!album && !loading && <p className="empty">No se encontro el album</p>}
     </div>
   );
 }

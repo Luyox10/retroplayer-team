@@ -114,7 +114,7 @@ export class YouTubeProvider extends ContentProvider {
   async getAlbum(externalId) {
     // YouTube playlists are treated as albums
     const { getCached, setCached } = await import('../../services/cacheService.js');
-    const cacheKey = `album:${externalId}`;
+    const cacheKey = `album-v2:${externalId}`;
     const cached = await getCached('yt-album', cacheKey, 'youtube');
     if (cached) return cached;
 
