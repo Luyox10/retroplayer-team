@@ -13,20 +13,30 @@ import { getCached, setCached } from './cacheService.js';
 const RESOLVED_TTL = 30 * 24 * 60 * 60; // 30 days
 
 const NEGATIVE_WORDS = [
-  'cover', 'remix', 'remixed', 'karaoke', 'sped up', 'sped-up', 'slowed', 'reverb',
+  'cover', 'remix', 'remixed', 'karaoke', 'sped up', 'slowed', 'reverb',
   'nightcore', 'reaction', 'live', 'acoustic', 'instrumental', 'bootleg', 'tribute',
   'fan', '8d', '1 hour', '10 hours', 'bass boosted', 'audio library', 'mashup',
-  'medley', 'concert', 'session', 'ft.', 'feat.', 'featuring', 'parody',
+  'medley', 'concert', 'session', 'lyrics', 'letra', 'parody', 'anniversary',
 ];
 
 const POSITIVE_WORDS = [
-  'official audio', 'official video', 'official music video', 'audio', 'visualizer',
+  'official audio', 'official video', 'official music video', 'visualizer',
 ];
 
 const OFFICIAL_CHANNELS = ['vevo', 'topic', 'official'];
 
 function normalize(str) {
-  return (str || '').toLowerCase().trim();
+  return (str || '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/&/g, ' and ')
+    .replace(/\bft\.?\b/g, '')
+    .replace(/\bfeat\.?\b/g, '')
+    .replace(/\bfeaturing\b/g, '')
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function tokenSet(str) {
@@ -48,11 +58,15 @@ function scoreCandidate(item, track) {
   const channel = normalize(item.snippet?.channelTitle);
   const trackTitle = normalize(track.title);
   const artistName = normalize(track.artist);
+  const titleWords = ` ${title} `;
+  const titleCompact = title.replace(/\s+/g, '');
+  const channelCompact = channel.replace(/\s+/g, '');
+  const artistCompact = artistName.replace(/\s+/g, '');
 
   let score = 0;
 
   // Title matching
-  if (title.includes(trackTitle)) {
+  if (titleWords.includes(` ${trackTitle} `)) {
     score += 120;
   } else {
     const match = tokensMatch(title, trackTitle);
@@ -60,20 +74,21 @@ function scoreCandidate(item, track) {
   }
 
   // Artist in title or channel
-  if (title.includes(artistName)) score += 40;
-  if (channel.includes(artistName)) score += 80;
+  if (titleWords.includes(` ${artistName} `) || titleCompact.includes(artistCompact)) score += 40;
+  if (channelCompact.includes(artistCompact)) score += 80;
 
   // Official/verified channels
-  if (OFFICIAL_CHANNELS.some(word => channel.includes(word))) score += 80;
+  if (OFFICIAL_CHANNELS.some(word => channelCompact.includes(word))) score += 80;
 
   // Positive content indicators
   for (const word of POSITIVE_WORDS) {
-    if (title.includes(word)) score += 50;
+    const w = ` ${normalize(word)} `;
+    if (titleWords.includes(w)) score += 50;
   }
 
-  // View count (capped)
+  // View count (minor tie-breaker, capped)
   const viewCount = Number(item.statistics?.viewCount || 0);
-  score += Math.min(viewCount / 500000, 40);
+  score += Math.min(viewCount / 2_000_000, 10);
 
   // Duration match
   const ytDuration = parseISO8601Duration(item.contentDetails?.duration);
@@ -86,8 +101,9 @@ function scoreCandidate(item, track) {
 
   // Negative indicators
   for (const word of NEGATIVE_WORDS) {
-    if (title.includes(word)) score -= 100;
-    if (channel.includes(word)) score -= 80;
+    const w = ` ${normalize(word)} `;
+    if (titleWords.includes(w)) score -= 100;
+    if (channelWords.includes(w)) score -= 80;
   }
 
   // Penalize very long videos (mixes, compilations)
