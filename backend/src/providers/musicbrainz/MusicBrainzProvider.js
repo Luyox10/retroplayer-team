@@ -58,13 +58,9 @@ export class MusicBrainzProvider extends ContentProvider {
 
     const mainGroups = sortByDateAsc(groups.filter(isMainAlbum)).slice(0, limit);
 
-    const albums = [];
-    for (const rg of mainGroups) {
-      const releaseData = await adapter.getFirstReleaseForGroup(rg.id);
-      const caaData = await adapter.getCoverArtForReleaseGroup(rg.id);
-      const album = normalizeAlbum(rg, artist, caaData, releaseData);
-      if (album) albums.push(album);
-    }
+    const albums = mainGroups
+      .map(rg => normalizeAlbum(rg, artist, null, null))
+      .filter(Boolean);
 
     return {
       artist: normalizeArtist({
@@ -85,14 +81,10 @@ export class MusicBrainzProvider extends ContentProvider {
     const rgData = await adapter.getArtistReleaseGroups(artistExternalId);
     const groups = sortByDateAsc((rgData?.['release-groups'] || []).filter(isMainAlbum)).slice(0, limit);
 
-    const albums = [];
-    for (const rg of groups) {
-      const releaseData = await adapter.getFirstReleaseForGroup(rg.id);
-      const caaData = await adapter.getCoverArtForReleaseGroup(rg.id);
-      const artist = { id: artistExternalId, name: '' };
-      const album = normalizeAlbum(rg, artist, caaData, releaseData);
-      if (album) albums.push(album);
-    }
+    const artist = { id: artistExternalId, name: '' };
+    const albums = groups
+      .map(rg => normalizeAlbum(rg, artist, null, null))
+      .filter(Boolean);
 
     return { albums };
   }

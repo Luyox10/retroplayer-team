@@ -133,7 +133,10 @@ export default function ArtistPage() {
 
         return Promise.all([
           getArtistTop(artistId, 5).catch(() => ({ tracks: [] })),
-          getArtistAlbums(artistId, 10, artistName).catch(() => ({ albums: [] })),
+          getArtistAlbums(artistId, 10, artistName).catch((err) => {
+            console.error('Failed to load albums:', err);
+            return { albums: [] };
+          }),
         ]).then(([topData, albumsData]) => {
           setTopTracks(topData?.tracks || []);
           setAlbums(albumsData?.albums || []);
