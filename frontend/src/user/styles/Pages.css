@@ -937,6 +937,20 @@
   border-bottom: none;
 }
 
+.top-track-index {
+  width: 1.5rem;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--rp-text-muted);
+  flex-shrink: 0;
+}
+
+.top-track-row:nth-child(-n+3) .top-track-index {
+  color: var(--rp-neon-cyan);
+  text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+}
+
 .top-track-cover {
   width: 56px;
   height: 56px;

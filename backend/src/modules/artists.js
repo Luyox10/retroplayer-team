@@ -91,13 +91,14 @@ export async function getArtistTop(req, res) {
   }
 
   // Combine all tracks
-  const allTracks N[...rawTracks, ...extraTracks];
-limit
-  // Generate top 10 using ranking service
-  let topTracks = generateTopTracks(allTracks, artist.name, channelId, 10);
+  const allTracks = [...rawTracks, ...extraTracks];
 
-  // Sort by view count (most viewed first)
+  // Get best 25 candidates using ranking service, then keep the most viewed ones
+  let topTracks = generateTopTracks(allTracks, artist.name, channelId, 25);
+
+  // Sort by view count (most viewed first) and keep top N
   topTracks.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+  topTracks = topTracks.slice(0, limit);
 
   // Cache for 1 hour
   await setCached('ranking', cacheKey, topTracks, 'retroplayer', 3600);

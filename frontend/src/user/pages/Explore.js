@@ -154,7 +154,7 @@ function ArtistHero({ artist, topTracks }) {
   );
 }
 
-function TopTrackRow({ track, onPlay }) {
+function TopTrackRow({ track, index, onPlay }) {
   const title = track.title || 'Sin titulo';
   const cover = getTrackImage(track);
   const duration = formatDuration(track.duration);
@@ -162,6 +162,9 @@ function TopTrackRow({ track, onPlay }) {
 
   return (
     <div className="top-track-row" onClick={onPlay} role="button" tabIndex={0}>
+      {typeof index === 'number' && (
+        <span className="top-track-index">{index + 1}</span>
+      )}
       {cover && <img className="top-track-cover" src={cover} alt={title} />}
       <div className="top-track-info">
         <strong>{title}</strong>
@@ -283,10 +286,11 @@ export default function Explore() {
                   </div>
                   {artistTop.length > 0 ? (
                     <div className="top-tracks-list">
-                      {artistTop.map((t, i) => (
+                      {artistTop.slice(0, 3).map((t, i) => (
                         <TopTrackRow
                           key={getExternalId(t) || `top3-${i}`}
                           track={t}
+                          index={i}
                           onPlay={() => handlePlayTrack(t, artistTop)}
                         />
                       ))}
