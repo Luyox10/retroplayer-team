@@ -211,6 +211,33 @@ export async function getChannelPlaylists(channelId, maxResults = 10) {
 }
 
 /**
+ * Get details for a single playlist (used for album metadata)
+ */
+export async function getPlaylistDetails(playlistId) {
+  if (!playlistId) {
+    throw new AppError('Playlist ID is required', 400, 'VALIDATION_ERROR');
+  }
+
+  const cacheKey = `playlist:${playlistId}`;
+  const cached = await getCached('yt-playlist', cacheKey, 'youtube');
+  if (cached) return cached;
+
+  const url = buildUrl('/playlists', {
+    part: 'snippet',
+    id: playlistId,
+  });
+
+  const data = await fetchYouTube(url);
+  const item = data.items?.[0];
+  if (!item) {
+    throw new AppError('YouTube playlist not found', 404, 'NOT_FOUND');
+  }
+
+  await setCached('yt-playlist', cacheKey, item, 'youtube');
+  return item;
+}
+
+/**
  * Get items from a playlist (used for album tracks)
  */
 export async function getPlaylistItems(playlistId, maxResults = 25) {

@@ -70,9 +70,11 @@ export class YouTubeProvider extends ContentProvider {
     return { tracks };
   }
 
-  async getArtistAlbums(artistExternalId, limit = 10) {
-    const data = await adapter.getChannelPlaylists(artistExternalId, 25);
-    const channel = await adapter.getChannelDetails(artistExternalId);
+  async getArtistAlbums(channelId, limit = 10) {
+    // Fetch playlists belonging to the artist's channel and keep the ones
+    // that look like real studio albums (not live, sessions, mixes, etc.)
+    const data = await adapter.getChannelPlaylists(channelId, 25);
+    const channel = await adapter.getChannelDetails(channelId);
     const channelTitle = channel?.snippet?.title || null;
 
     const nonAlbumWords = [
@@ -89,6 +91,8 @@ export class YouTubeProvider extends ContentProvider {
         if (trackCount < 4) return false;
         return !nonAlbumWords.some((word) => title.includes(word));
       })
+      // Prioritize fuller playlists (real albums usually have more tracks)
+      .sort((a, b) => (b.contentDetails?.itemCount || 0) - (a.contentDetails?.itemCount || 0))
       .map(item => normalizePlaylistToAlbum(item, channelTitle))
       .filter(Boolean)
       .slice(0, limit);
@@ -107,30 +111,17 @@ export class YouTubeProvider extends ContentProvider {
 
   async getAlbum(externalId) {
     // YouTube playlists are treated as albums
-    // We need to fetch the playlist details
     const { getCached, setCached } = await import('../../services/cacheService.js');
     const cacheKey = `album:${externalId}`;
     const cached = await getCached('yt-album', cacheKey, 'youtube');
     if (cached) return cached;
 
-    // Fetch playlist info by getting its items (which gives us the snippet)
-    const data = await adapter.getPlaylistItems(externalId, 1);
-    if (data.items && data.items.length > 0) {
-      const item = data.items[0];
-      const album = normalizePlaylistToAlbum({
-        id: externalId,
-        snippet: {
-          title: 'Playlist',
-          channelId: item.snippet?.channelId,
-          channelTitle: item.snippet?.channelTitle,
-          thumbnails: item.snippet?.thumbnails,
-          publishedAt: item.snippet?.publishedAt,
-        },
-      });
-      if (album) {
-        await setCached('yt-album', cacheKey, album, 'youtube');
-        return album;
-      }
+    // Fetch actual playlist metadata (title, thumbnails, channel)
+    const item = await adapter.getPlaylistDetails(externalId);
+    const album = normalizePlaylistToAlbum(item, item?.snippet?.channelTitle);
+    if (album) {
+      await setCached('yt-album', cacheKey, album, 'youtube');
+      return album;
     }
 
     const { AppError } = await import('../../utils/errors.js');
