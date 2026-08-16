@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePlayer } from '../contexts/PlayerContext';
-import { getArtist, getArtistTop, getArtistAlbums, getArtistTracks } from '../services/contentService';
+import { getArtist, getArtistTop, getArtistAlbums, getArtistTracks, search, searchTracks } from '../services/contentService';
 import { getTrackImage, getExternalId } from '../../shared/utils/contentHelpers';
 import '../styles/Pages.css';
 
@@ -28,7 +28,7 @@ function TrackListItem({ track, index, onPlay }) {
   );
 }
 
-function AlbumCard({ album }) {
+function AlbumCard({ album, onClick }) {
   const [imgError, setImgError] = React.useState(false);
   const name = album.name || 'Sin titulo';
   const artist = album.artistName || '';
@@ -36,7 +36,7 @@ function AlbumCard({ album }) {
   const hasCover = cover && !imgError;
 
   return (
-    <div className="card album-card">
+    <div className="card album-card" onClick={onClick} role="button" tabIndex={0}>
       <div className="card-media">
         {hasCover ? (
           <img src={cover} alt={name} onError={() => setImgError(true)} />
@@ -50,6 +50,29 @@ function AlbumCard({ album }) {
         <h3>{name}</h3>
         {artist && <p>{artist}</p>}
         {album.year && <p className="album-year">{album.year}</p>}
+      </div>
+    </div>
+  );
+}
+
+function RelatedArtistCard({ artist, onClick }) {
+  const [imgError, setImgError] = React.useState(false);
+  const name = artist.name || 'Artista';
+  const image = artist.image;
+
+  return (
+    <div className="card related-artist-card" onClick={onClick} role="button" tabIndex={0}>
+      <div className="card-media">
+        {image && !imgError ? (
+          <img src={image} alt={name} onError={() => setImgError(true)} />
+        ) : (
+          <div className="cover-placeholder">
+            <span>{name[0]}</span>
+          </div>
+        )}
+      </div>
+      <div className="card-body">
+        <h3>{name}</h3>
       </div>
     </div>
   );
@@ -91,6 +114,8 @@ export default function ArtistPage() {
   const [topTracks, setTopTracks] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [allTracks, setAllTracks] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [relatedArtists, setRelatedArtists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -105,7 +130,7 @@ export default function ArtistPage() {
     // Fetch all data in parallel
     Promise.all([
       getArtist(artistId).catch(() => null),
-      getArtistTop(artistId).catch(() => ({ tracks: [] })),
+      getArtistTop(artistId, 5).catch(() => ({ tracks: [] })),
       getArtistAlbums(artistId, 10).catch(() => ({ albums: [] })),
       getArtistTracks(artistId, 10).catch(() => ({ tracks: [] })),
     ])
@@ -120,6 +145,22 @@ export default function ArtistPage() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!artist?.name) return;
+
+    Promise.all([
+      searchTracks(`${artist.name} music video`, 8).catch(() => ({ tracks: [] })),
+      search(artist.name, 6).catch(() => ({ artists: [], tracks: [] })),
+    ]).then(([videosData, searchData]) => {
+      setVideos(videosData?.tracks || []);
+      setRelatedArtists(
+        (searchData?.artists || [])
+          .filter((a) => a.id !== artist.id)
+          .slice(0, 5)
+      );
+    });
+  }, [artist]);
 
   const handlePlayTrack = (track, playlist) => {
     if (getExternalId(track)) {
@@ -168,11 +209,11 @@ export default function ArtistPage() {
         </div>
       </div>
 
-      {/* Top 10 */}
+      {/* Top 5 */}
       {topTracks.length > 0 && (
         <section className="section">
           <div className="section-header">
-            <h2>Top 10</h2>
+            <h2>Top 5</h2>
           </div>
           <div className="top-tracks-list">
             {topTracks.map((track, i) => (
@@ -195,7 +236,11 @@ export default function ArtistPage() {
           </div>
           <div className="grid">
             {albums.map((album, i) => (
-              <AlbumCard key={album.id || `album-${i}`} album={album} />
+              <AlbumCard
+                key={album.id || `album-${i}`}
+                album={album}
+                onClick={() => navigate(`/album/${album.id}`)}
+              />
             ))}
           </div>
         </section>
@@ -219,7 +264,43 @@ export default function ArtistPage() {
         </section>
       )}
 
-      {topTracks.length === 0 && albums.length === 0 && allTracks.length === 0 && (
+      {/* Videoclips */}
+      {videos.length > 0 && (
+        <section className="section">
+          <div className="section-header">
+            <h2>Videoclips</h2>
+          </div>
+          <div className="grid">
+            {videos.map((track, i) => (
+              <TrackCard
+                key={getExternalId(track) || `video-${i}`}
+                track={track}
+                onPlay={() => handlePlayTrack(track, videos)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Related Artists */}
+      {relatedArtists.length > 0 && (
+        <section className="section">
+          <div className="section-header">
+            <h2>Recomendaciones de artistas</h2>
+          </div>
+          <div className="grid">
+            {relatedArtists.map((a, i) => (
+              <RelatedArtistCard
+                key={a.id || `rel-${i}`}
+                artist={a}
+                onClick={() => navigate(`/artist/${a.id}`)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {topTracks.length === 0 && albums.length === 0 && allTracks.length === 0 && videos.length === 0 && relatedArtists.length === 0 && (
         <p className="empty">No se encontro contenido para este artista</p>
       )}
     </div>

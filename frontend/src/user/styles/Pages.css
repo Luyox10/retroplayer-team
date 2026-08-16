@@ -995,3 +995,27 @@
     height: 120px;
   }
 }
+
+/* Album cards & related artists */
+.album-card {
+  cursor: pointer;
+}
+
+.album-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--rp-neon-cyan), 0 0 14px rgba(0, 212, 255, 0.35);
+}
+
+.related-artist-card .card-media img,
+.related-artist-card .card-media .cover-placeholder {
+  border-radius: 50%;
+}
+
+.related-artist-card {
+  cursor: pointer;
+}
+
+.related-artist-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--rp-neon-cyan), 0 0 14px rgba(0, 212, 255, 0.35);
+}
