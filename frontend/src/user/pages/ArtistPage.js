@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePlayer } from '../contexts/PlayerContext';
-import { getArtist, getArtistTop, getArtistAlbums, getArtistTracks, search, searchTracks } from '../services/contentService';
+import { getArtist, getArtistTop, getArtistAlbums, search, searchTracks } from '../services/contentService';
 import { getTrackImage, getExternalId } from '../../shared/utils/contentHelpers';
 import '../styles/Pages.css';
 
@@ -113,7 +113,6 @@ export default function ArtistPage() {
   const [artist, setArtist] = useState(null);
   const [topTracks, setTopTracks] = useState([]);
   const [albums, setAlbums] = useState([]);
-  const [allTracks, setAllTracks] = useState([]);
   const [videos, setVideos] = useState([]);
   const [relatedArtists, setRelatedArtists] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,15 +131,13 @@ export default function ArtistPage() {
       getArtist(artistId).catch(() => null),
       getArtistTop(artistId, 5).catch(() => ({ tracks: [] })),
       getArtistAlbums(artistId, 10).catch(() => ({ albums: [] })),
-      getArtistTracks(artistId, 10).catch(() => ({ tracks: [] })),
     ])
-      .then(([artistData, topData, albumsData, tracksData]) => {
+      .then(([artistData, topData, albumsData]) => {
         if (artistData?.artist) {
           setArtist(artistData.artist);
         }
         setTopTracks(topData?.tracks || []);
         setAlbums(albumsData?.albums || []);
-        setAllTracks(tracksData?.tracks || []);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -149,11 +146,20 @@ export default function ArtistPage() {
   useEffect(() => {
     if (!artist?.name) return;
 
+    const artistNameLower = artist.name.toLowerCase();
+    const genreQuery = artist.genres?.length ? artist.genres[0] : artist.name;
+
     Promise.all([
-      searchTracks(`${artist.name} music video`, 8).catch(() => ({ tracks: [] })),
-      search(artist.name, 6).catch(() => ({ artists: [], tracks: [] })),
+      searchTracks(`${artist.name} official music video`, 10).catch(() => ({ tracks: [] })),
+      search(genreQuery, 8).catch(() => ({ artists: [], tracks: [] })),
     ]).then(([videosData, searchData]) => {
-      setVideos(videosData?.tracks || []);
+      setVideos(
+        (videosData?.tracks || []).filter(
+          (t) =>
+            t.artist?.toLowerCase().includes(artistNameLower) ||
+            t.title?.toLowerCase().includes(artistNameLower)
+        )
+      );
       setRelatedArtists(
         (searchData?.artists || [])
           .filter((a) => a.id !== artist.id)
@@ -213,7 +219,7 @@ export default function ArtistPage() {
       {topTracks.length > 0 && (
         <section className="section">
           <div className="section-header">
-            <h2>Top 5</h2>
+            <h2>Canciones mas escuchadas</h2>
           </div>
           <div className="top-tracks-list">
             {topTracks.map((track, i) => (
@@ -240,24 +246,6 @@ export default function ArtistPage() {
                 key={album.id || `album-${i}`}
                 album={album}
                 onClick={() => navigate(`/album/${album.id}`)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* All Tracks */}
-      {allTracks.length > 0 && (
-        <section className="section">
-          <div className="section-header">
-            <h2>Canciones</h2>
-          </div>
-          <div className="grid">
-            {allTracks.map((track, i) => (
-              <TrackCard
-                key={getExternalId(track) || `track-${i}`}
-                track={track}
-                onPlay={() => handlePlayTrack(track, allTracks)}
               />
             ))}
           </div>
@@ -300,7 +288,7 @@ export default function ArtistPage() {
         </section>
       )}
 
-      {topTracks.length === 0 && albums.length === 0 && allTracks.length === 0 && videos.length === 0 && relatedArtists.length === 0 && (
+      {topTracks.length === 0 && albums.length === 0 && videos.length === 0 && relatedArtists.length === 0 && (
         <p className="empty">No se encontro contenido para este artista</p>
       )}
     </div>
