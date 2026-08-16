@@ -2,6 +2,7 @@ import { ContentProvider } from '../ContentProvider.js';
 import * as adapter from './musicbrainzAdapter.js';
 import { normalizeArtist, normalizeAlbum, normalizeTracks, isMainAlbum, sortByDateAsc } from './musicbrainzNormalizer.js';
 import { buildContentId, createSource } from '../../models/contentModels.js';
+import { resolveTracksToYouTube } from '../../services/youtubeResolver.js';
 import { AppError } from '../../utils/errors.js';
 
 export class MusicBrainzProvider extends ContentProvider {
@@ -132,7 +133,8 @@ export class MusicBrainzProvider extends ContentProvider {
     const caaData = await adapter.getCoverArtForReleaseGroup(externalId);
     const album = normalizeAlbum(firstRg, null, caaData, { releases: [trackData] });
     const artist = firstRg?.['artist-credit']?.[0]?.artist || null;
-    const tracks = normalizeTracks(trackData, album, artist);
+    const mbTracks = normalizeTracks(trackData, album, artist);
+    const tracks = await resolveTracksToYouTube(mbTracks);
 
     return { tracks, album };
   }
