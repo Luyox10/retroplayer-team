@@ -62,10 +62,12 @@ export async function getArtistAlbums(req, res) {
  *   6. Return top 10
  */
 export async function getArtistTop(req, res) {
+  const url = new URL(req.url, getBaseUrl(req));
   const artistId = extractArtistId(req);
+  const limit = parseLimit(url);
 
   // Check cache first
-  const cacheKey = `artist-top:${artistId}`;
+  const cacheKey = `artist-top:${artistId}:${limit}`;
   const cached = await getCached('ranking', cacheKey, 'retroplayer', 3600);
   if (cached) {
     sendSuccess(res, 200, { tracks: cached });
@@ -89,8 +91,8 @@ export async function getArtistTop(req, res) {
   }
 
   // Combine all tracks
-  const allTracks = [...rawTracks, ...extraTracks];
-
+  const allTracks N[...rawTracks, ...extraTracks];
+limit
   // Generate top 10 using ranking service
   let topTracks = generateTopTracks(allTracks, artist.name, channelId, 10);
 

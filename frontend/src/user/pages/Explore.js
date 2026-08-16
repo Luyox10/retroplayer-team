@@ -227,7 +227,7 @@ export default function Explore() {
     }
     Promise.all([
       getArtist(originalArtist.id).catch(() => null),
-      getArtistTop(originalArtist.id, 5).catch(() => ({ tracks: [] })),
+      getArtistTop(originalArtist.id, 3).catch(() => ({ tracks: [] })),
     ]).then(([details, top]) => {
       setArtistDetails(details?.artist || null);
       setArtistTop(top?.tracks || []);
@@ -279,20 +279,20 @@ export default function Explore() {
                 <ArtistHero artist={artistDetails || originalArtist} topTracks={artistTop} />
                 <div className="search-artist-top">
                   <div className="section-header">
-                    <h4>Top 5 canciones</h4>
+                    <h4>Top 3 canciones</h4>
                   </div>
                   {artistTop.length > 0 ? (
                     <div className="top-tracks-list">
                       {artistTop.map((t, i) => (
                         <TopTrackRow
-                          key={getExternalId(t) || `top5-${i}`}
+                          key={getExternalId(t) || `top3-${i}`}
                           track={t}
                           onPlay={() => handlePlayTrack(t, artistTop)}
                         />
                       ))}
                     </div>
                   ) : (
-                    <p className="empty">Cargando top 5...</p>
+                    <p className="empty">Cargando top 3...</p>
                   )}
                 </div>
               </div>
