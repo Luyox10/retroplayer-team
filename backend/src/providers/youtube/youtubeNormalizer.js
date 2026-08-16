@@ -126,6 +126,7 @@ export function normalizeChannelToArtist(item) {
     name: snippet.title || 'Unknown',
     image: extractThumbnail(snippet),
     description: snippet.description || null,
+    subscriberCount: Number(item.statistics?.subscriberCount || 0),
     genres: [],
     source: createSource('youtube', channelId),
   });

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '../contexts/PlayerContext';
 import { search } from '../services/exploreService';
-import { getArtistTop } from '../services/contentService';
+import { getArtist, getArtistTop } from '../services/contentService';
 import { getTrackImage, getExternalId } from '../../shared/utils/contentHelpers';
 import { request } from '../../shared/utils/api';
 import '../styles/Pages.css';
@@ -82,21 +82,55 @@ function selectOriginalArtist(artists, query) {
   return scored[0].artist;
 }
 
-function ArtistCard({ artist }) {
+function formatDuration(seconds) {
+  if (!seconds || seconds <= 0) return '';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function formatCompact(value) {
+  const n = Number(value || 0);
+  if (n >= 1_000_000_000) return `${(n / 1_000_000).toFixed(0)} M`;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(0)} M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(0)} K`;
+  return String(n);
+}
+
+function ArtistHero({ artist, topTracks }) {
   const navigate = useNavigate();
+  const { playTrack } = usePlayer();
   const [imgError, setImgError] = useState(false);
   const name = artist.name || 'Artista';
   const image = artist.image;
 
   const handleClick = () => {
-    if (artist.id) {
-      navigate(`/artist/${artist.id}`);
+    if (artist.id) navigate(`/artist/${artist.id}`);
+  };
+
+  const handleRandom = (e) => {
+    e.stopPropagation();
+    if (!topTracks?.length) return;
+    const random = topTracks[Math.floor(Math.random() * topTracks.length)];
+    if (getExternalId(random)) {
+      playTrack(random, topTracks);
+      navigate('/room');
+    }
+  };
+
+  const handleMix = (e) => {
+    e.stopPropagation();
+    if (!topTracks?.length) return;
+    const first = topTracks[0];
+    if (getExternalId(first)) {
+      playTrack(first, topTracks);
+      navigate('/room');
     }
   };
 
   return (
-    <div className="card artist-card" onClick={handleClick} role="button" tabIndex={0}>
-      <div className="card-media">
+    <div className="artist-hero" onClick={handleClick} role="button" tabIndex={0}>
+      <div className="artist-hero-image">
         {image && !imgError ? (
           <img src={image} alt={name} onError={() => setImgError(true)} />
         ) : (
@@ -105,8 +139,33 @@ function ArtistCard({ artist }) {
           </div>
         )}
       </div>
-      <div className="card-body">
+      <div className="artist-hero-info">
         <h3>{name}</h3>
+        <p>
+          Artista
+          {artist.subscriberCount ? ` • ${formatCompact(artist.subscriberCount)} usuarios mensuales` : ''}
+        </p>
+        <div className="artist-hero-actions">
+          <button className="btn" onClick={handleRandom}>Aleatorio</button>
+          <button className="btn btn-secondary" onClick={handleMix}>Mix</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TopTrackRow({ track, onPlay }) {
+  const title = track.title || 'Sin titulo';
+  const cover = getTrackImage(track);
+  const duration = formatDuration(track.duration);
+  const views = track.viewCount ? `${formatCompact(track.viewCount)} reproducciones` : '';
+
+  return (
+    <div className="top-track-row" onClick={onPlay} role="button" tabIndex={0}>
+      {cover && <img className="top-track-cover" src={cover} alt={title} />}
+      <div className="top-track-info">
+        <strong>{title}</strong>
+        <span>{['Canción', duration, views].filter(Boolean).join(' • ')}</span>
       </div>
     </div>
   );
@@ -122,6 +181,7 @@ export default function Explore() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState(null);
   const [artistTop, setArtistTop] = useState([]);
+  const [artistDetails, setArtistDetails] = useState(null);
 
   useEffect(() => {
     request('/api/explore/page')
@@ -162,11 +222,16 @@ export default function Explore() {
   useEffect(() => {
     if (!originalArtist?.id) {
       setArtistTop([]);
+      setArtistDetails(null);
       return;
     }
-    getArtistTop(originalArtist.id, 3)
-      .then((r) => setArtistTop(r?.tracks || []))
-      .catch(() => setArtistTop([]));
+    Promise.all([
+      getArtist(originalArtist.id).catch(() => null),
+      getArtistTop(originalArtist.id, 5).catch(() => ({ tracks: [] })),
+    ]).then(([details, top]) => {
+      setArtistDetails(details?.artist || null);
+      setArtistTop(top?.tracks || []);
+    });
   }, [originalArtist]);
 
   const sections = exploreData?.sections || [];
@@ -210,25 +275,24 @@ export default function Explore() {
               <div className="section-header">
                 <h3>Artista</h3>
               </div>
-              <div className="search-artist-row" style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
-                <ArtistCard artist={originalArtist} />
-                <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="search-artist-hero">
+                <ArtistHero artist={artistDetails || originalArtist} topTracks={artistTop} />
+                <div className="search-artist-top">
                   <div className="section-header">
-                    <h4>Top 3 canciones</h4>
+                    <h4>Top 5 canciones</h4>
                   </div>
                   {artistTop.length > 0 ? (
                     <div className="top-tracks-list">
                       {artistTop.map((t, i) => (
-                        <TrackListItem
-                          key={getExternalId(t) || `top3-${i}`}
+                        <TopTrackRow
+                          key={getExternalId(t) || `top5-${i}`}
                           track={t}
-                          index={i}
                           onPlay={() => handlePlayTrack(t, artistTop)}
                         />
                       ))}
                     </div>
                   ) : (
-                    <p className="empty">Cargando top 3...</p>
+                    <p className="empty">Cargando top 5...</p>
                   )}
                 </div>
               </div>

@@ -11,11 +11,12 @@
  * @property {string} name
  * @property {string|null} image
  * @property {string|null} description
+ * @property {number} subscriberCount - Subscriber count from provider
  * @property {string[]} genres
  * @property {ContentSource} source
  */
-export function createArtist({ id, name, image = null, description = null, genres = [], source }) {
-  return { id, name, image, description, genres, source };
+export function createArtist({ id, name, image = null, description = null, subscriberCount = 0, genres = [], source }) {
+  return { id, name, image, description, subscriberCount, genres, source };
 }
 
 /**

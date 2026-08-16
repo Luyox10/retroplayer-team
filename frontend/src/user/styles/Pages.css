@@ -866,3 +866,118 @@
     justify-content: center;
   }
 }
+
+/* Search artist hero */
+.search-artist-hero {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 2rem;
+  align-items: center;
+  background: var(--rp-bg-card);
+  border: 1px solid var(--rp-border);
+  border-radius: var(--rp-radius-lg);
+  padding: 1.5rem;
+  box-shadow: 0 4px 24px var(--rp-shadow);
+}
+
+.artist-hero {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.artist-hero-image img,
+.artist-hero-image .cover-placeholder {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--rp-border-subtle);
+  box-shadow: 0 0 24px var(--rp-shadow-glow);
+}
+
+.artist-hero-info h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--rp-text-primary);
+}
+
+.artist-hero-info p {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--rp-text-secondary);
+}
+
+.artist-hero-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.search-artist-top .section-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.top-track-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--rp-border);
+  cursor: pointer;
+  transition: background var(--rp-transition-fast);
+}
+
+.top-track-row:hover {
+  background: var(--rp-bg-elevated);
+}
+
+.top-track-row:last-child {
+  border-bottom: none;
+}
+
+.top-track-cover {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--rp-radius-sm);
+  object-fit: cover;
+}
+
+.top-track-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.top-track-info strong {
+  font-size: 0.95rem;
+  color: var(--rp-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-track-info span {
+  font-size: 0.8rem;
+  color: var(--rp-text-secondary);
+}
+
+@media (max-width: 768px) {
+  .search-artist-hero {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    text-align: center;
+  }
+
+  .artist-hero {
+    flex-direction: column;
+  }
+
+  .artist-hero-image img,
+  .artist-hero-image .cover-placeholder {
+    width: 120px;
+    height: 120px;
+  }
+}
