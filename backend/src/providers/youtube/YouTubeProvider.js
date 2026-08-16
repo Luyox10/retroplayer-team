@@ -64,7 +64,8 @@ export class YouTubeProvider extends ContentProvider {
     const data = await adapter.searchVideos(`${channelName} music`, limit);
     const tracks = (data.items || [])
       .map(normalizeVideoToTrack)
-      .filter(Boolean);
+      .filter(Boolean)
+      .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
 
     return { tracks };
   }

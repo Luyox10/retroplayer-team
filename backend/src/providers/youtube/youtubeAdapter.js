@@ -91,7 +91,7 @@ export async function searchVideos(query, maxResults = 10) {
 
   // Fetch full details for each video
   const detailsUrl = buildUrl('/videos', {
-    part: 'snippet,status,contentDetails',
+    part: 'snippet,status,contentDetails,statistics',
     id: videoIds.join(','),
   });
 
@@ -116,7 +116,7 @@ export async function getVideoDetails(videoId) {
   if (cached) return cached;
 
   const url = buildUrl('/videos', {
-    part: 'snippet,status,contentDetails',
+    part: 'snippet,status,contentDetails,statistics',
     id: videoId,
   });
 
@@ -241,7 +241,7 @@ export async function getPlaylistItems(playlistId, maxResults = 25) {
   }
 
   const detailsUrl = buildUrl('/videos', {
-    part: 'snippet,status,contentDetails',
+    part: 'snippet,status,contentDetails,statistics',
     id: videoIds.join(','),
   });
 

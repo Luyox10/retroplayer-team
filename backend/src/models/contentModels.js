@@ -44,8 +44,8 @@ export function createAlbum({ id, name, artistId = null, artistName = null, year
  * @property {string|null} image - Thumbnail/cover URL
  * @property {ContentSource} source
  */
-export function createTrack({ id, title, artist = null, artistId = null, album = null, albumId = null, duration = 0, image = null, source }) {
-  return { id, title, artist, artistId, album, albumId, duration, image, source };
+export function createTrack({ id, title, artist = null, artistId = null, album = null, albumId = null, duration = 0, image = null, viewCount = 0, source }) {
+  return { id, title, artist, artistId, album, albumId, duration, image, viewCount, source };
 }
 
 /**

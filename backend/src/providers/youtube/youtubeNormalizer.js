@@ -107,6 +107,7 @@ export function normalizeVideoToTrack(item) {
     albumId: null,
     duration: parseISO8601Duration(contentDetails.duration),
     image: extractThumbnail(snippet),
+    viewCount: Number(item.statistics?.viewCount || 0),
     source: createSource('youtube', videoId),
   });
 }

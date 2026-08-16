@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '../contexts/PlayerContext';
 import { search } from '../services/exploreService';
+import { getArtistTop } from '../services/contentService';
 import { getTrackImage, getExternalId } from '../../shared/utils/contentHelpers';
 import { request } from '../../shared/utils/api';
 import '../styles/Pages.css';
@@ -62,6 +63,25 @@ function TrackListItem({ track, index, onPlay }) {
   );
 }
 
+function selectOriginalArtist(artists, query) {
+  if (!artists || artists.length === 0) return null;
+  const q = (query || '').toLowerCase().trim();
+  const scored = artists
+    .filter((a) => a.name)
+    .map((a) => {
+      const name = a.name.trim();
+      const lower = name.toLowerCase();
+      let score = 0;
+      if (!lower.endsWith(' - topic')) score += 10;
+      if (lower === q) score += 100;
+      else if (lower.includes(q)) score += 50;
+      score -= name.length / 100;
+      return { artist: a, score };
+    });
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0].artist;
+}
+
 function ArtistCard({ artist }) {
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
@@ -70,7 +90,7 @@ function ArtistCard({ artist }) {
 
   const handleClick = () => {
     if (artist.id) {
-      navigate(`/artist/${encodeURIComponent(artist.id)}`);
+      navigate(`/artist/${artist.id}`);
     }
   };
 
@@ -101,6 +121,7 @@ export default function Explore() {
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [artistTop, setArtistTop] = useState([]);
 
   useEffect(() => {
     request('/api/explore/page')
@@ -132,6 +153,21 @@ export default function Explore() {
       navigate('/room');
     }
   };
+
+  const originalArtist = useMemo(
+    () => selectOriginalArtist(searchResults?.artists, query),
+    [searchResults?.artists, query]
+  );
+
+  useEffect(() => {
+    if (!originalArtist?.id) {
+      setArtistTop([]);
+      return;
+    }
+    getArtistTop(originalArtist.id, 3)
+      .then((r) => setArtistTop(r?.tracks || []))
+      .catch(() => setArtistTop([]));
+  }, [originalArtist]);
 
   const sections = exploreData?.sections || [];
   const featured = exploreData?.featured || [];
@@ -169,15 +205,32 @@ export default function Explore() {
           </div>
 
           {/* Artists */}
-          {searchResults.artists?.length > 0 && (
+          {originalArtist && (
             <>
               <div className="section-header">
-                <h3>Artistas</h3>
+                <h3>Artista</h3>
               </div>
-              <div className="grid">
-                {searchResults.artists.map((artist, i) => (
-                  <ArtistCard key={artist.id || `artist-${i}`} artist={artist} />
-                ))}
+              <div className="search-artist-row" style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+                <ArtistCard artist={originalArtist} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="section-header">
+                    <h4>Top 3 canciones</h4>
+                  </div>
+                  {artistTop.length > 0 ? (
+                    <div className="top-tracks-list">
+                      {artistTop.map((t, i) => (
+                        <TrackListItem
+                          key={getExternalId(t) || `top3-${i}`}
+                          track={t}
+                          index={i}
+                          onPlay={() => handlePlayTrack(t, artistTop)}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="empty">Cargando top 3...</p>
+                  )}
+                </div>
               </div>
             </>
           )}

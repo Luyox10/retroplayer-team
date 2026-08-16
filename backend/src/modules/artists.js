@@ -19,7 +19,7 @@ function extractArtistId(req) {
   const url = new URL(req.url, getBaseUrl(req));
   const parts = url.pathname.split('/').filter(Boolean);
   // /api/artists/:id -> parts = ['api', 'artists', ':id'] or ['api', 'artists', ':id', 'tracks']
-  const rawId = parts[2];
+  const rawId = parts[2] ? decodeURIComponent(parts[2]) : undefined;
   if (!rawId) throw new AppError('Artist ID is required', 400, 'VALIDATION_ERROR');
   return rawId;
 }
@@ -92,7 +92,10 @@ export async function getArtistTop(req, res) {
   const allTracks = [...rawTracks, ...extraTracks];
 
   // Generate top 10 using ranking service
-  const topTracks = generateTopTracks(allTracks, artist.name, channelId, 10);
+  let topTracks = generateTopTracks(allTracks, artist.name, channelId, 10);
+
+  // Sort by view count (most viewed first)
+  topTracks.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
 
   // Cache for 1 hour
   await setCached('ranking', cacheKey, topTracks, 'retroplayer', 3600);
