@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '../contexts/PlayerContext';
-import { searchTracks } from '../services/exploreService';
+import { search } from '../services/exploreService';
 import { getTrackImage, getExternalId } from '../../shared/utils/contentHelpers';
 import { request } from '../../shared/utils/api';
 import '../styles/Pages.css';
@@ -62,15 +62,33 @@ function TrackListItem({ track, index, onPlay }) {
   );
 }
 
-function GenreChip({ genre, active, onClick }) {
+function ArtistCard({ artist }) {
+  const navigate = useNavigate();
+  const [imgError, setImgError] = useState(false);
+  const name = artist.name || 'Artista';
+  const image = artist.image;
+
+  const handleClick = () => {
+    if (artist.id) {
+      navigate(`/artist/${encodeURIComponent(artist.id)}`);
+    }
+  };
+
   return (
-    <button
-      className={`genre-chip ${active ? 'genre-chip-active' : ''}`}
-      onClick={onClick}
-      type="button"
-    >
-      {genre.name}
-    </button>
+    <div className="card artist-card" onClick={handleClick} role="button" tabIndex={0}>
+      <div className="card-media">
+        {image && !imgError ? (
+          <img src={image} alt={name} onError={() => setImgError(true)} />
+        ) : (
+          <div className="cover-placeholder">
+            <span>{name[0]}</span>
+          </div>
+        )}
+      </div>
+      <div className="card-body">
+        <h3>{name}</h3>
+      </div>
+    </div>
   );
 }
 
@@ -80,8 +98,6 @@ export default function Explore() {
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [exploreData, setExploreData] = useState(null);
-  const [genreTracks, setGenreTracks] = useState(null);
-  const [activeGenre, setActiveGenre] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -99,8 +115,8 @@ export default function Explore() {
     setSearchLoading(true);
     setError(null);
     setSearchResults(null);
-    searchTracks(query)
-      .then((r) => setSearchResults(r?.tracks || []))
+    search(query)
+      .then((r) => setSearchResults(r))
       .catch((err) => setError(err.message))
       .finally(() => setSearchLoading(false));
   }, [query]);
@@ -110,19 +126,6 @@ export default function Explore() {
     setQuery('');
   };
 
-  const handleGenreClick = (genre) => {
-    if (activeGenre === genre.id) {
-      setActiveGenre(null);
-      setGenreTracks(null);
-      return;
-    }
-    setActiveGenre(genre.id);
-    setGenreTracks(null);
-    request(`/api/genres/${encodeURIComponent(genre.id)}/tracks?limit=10`)
-      .then((r) => setGenreTracks(r?.tracks || []))
-      .catch(() => setGenreTracks([]));
-  };
-
   const handlePlayTrack = (track, playlist) => {
     if (getExternalId(track)) {
       playTrack(track, playlist || []);
@@ -130,7 +133,6 @@ export default function Explore() {
     }
   };
 
-  const genres = exploreData?.genres || [];
   const sections = exploreData?.sections || [];
   const featured = exploreData?.featured || [];
 
@@ -165,14 +167,38 @@ export default function Explore() {
           <div className="section-header">
             <h2>Resultados para "{query}"</h2>
           </div>
-          <div className="grid">
-            {searchResults.length > 0
-              ? searchResults.map((t, i) => (
+
+          {/* Artists */}
+          {searchResults.artists?.length > 0 && (
+            <>
+              <div className="section-header">
+                <h3>Artistas</h3>
+              </div>
+              <div className="grid">
+                {searchResults.artists.map((artist, i) => (
+                  <ArtistCard key={artist.id || `artist-${i}`} artist={artist} />
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Tracks */}
+          {searchResults.tracks?.length > 0 && (
+            <>
+              <div className="section-header">
+                <h3>Canciones</h3>
+              </div>
+              <div className="grid">
+                {searchResults.tracks.map((t, i) => (
                   <TrackCard key={getExternalId(t) || `sr-${i}`} track={t} />
-                ))
-              : <p className="empty">Sin resultados</p>
-            }
-          </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {!searchResults.tracks?.length && !searchResults.artists?.length && (
+            <p className="empty">Sin resultados</p>
+          )}
         </section>
       )}
 
@@ -181,44 +207,7 @@ export default function Explore() {
         <>
           {loading && <div className="loading">Cargando...</div>}
 
-          {/* Genres */}
-          {genres.length > 0 && (
-            <section className="section">
-              <div className="section-header">
-                <h2>Generos</h2>
-              </div>
-              <div className="genre-chips">
-                {genres.map((g) => (
-                  <GenreChip
-                    key={g.id}
-                    genre={g}
-                    active={activeGenre === g.id}
-                    onClick={() => handleGenreClick(g)}
-                  />
-                ))}
-              </div>
-
-              {/* Genre tracks */}
-              {activeGenre && genreTracks && (
-                <div className="genre-tracks-list">
-                  {genreTracks.length > 0
-                    ? genreTracks.map((t, i) => (
-                        <TrackListItem
-                          key={getExternalId(t) || `gt-${i}`}
-                          track={t}
-                          index={i}
-                          onPlay={() => handlePlayTrack(t, genreTracks)}
-                        />
-                      ))
-                    : <p className="empty">Sin canciones para este genero</p>
-                  }
-                </div>
-              )}
-              {activeGenre && !genreTracks && (
-                <div className="loading">Cargando canciones...</div>
-              )}
-            </section>
-          )}
+          {/* (géneros eliminados) */}
 
           {/* Top 10 and Trending sections */}
           {sections.map((section, idx) => (
