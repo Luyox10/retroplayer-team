@@ -71,13 +71,27 @@ export class YouTubeProvider extends ContentProvider {
   }
 
   async getArtistAlbums(artistExternalId, limit = 10) {
-    const data = await adapter.getChannelPlaylists(artistExternalId, limit);
+    const data = await adapter.getChannelPlaylists(artistExternalId, 25);
     const channel = await adapter.getChannelDetails(artistExternalId);
     const channelTitle = channel?.snippet?.title || null;
 
+    const nonAlbumWords = [
+      'live', 'session', 'shorts', 'mix', 'compilation', 'greatest hits',
+      'radio', 'cover', 'karaoke', 'instrumental', 'interview', 'acoustic',
+      'demo', 'unreleased', 'bootleg', 'tour', 'concert', 'documentary',
+      'reaction', 'medley', 'station', 'podcast', 'full concert', 'music videos',
+    ];
+
     const albums = (data.items || [])
+      .filter((item) => {
+        const title = (item.snippet?.title || '').toLowerCase();
+        const trackCount = item.contentDetails?.itemCount || 0;
+        if (trackCount < 4) return false;
+        return !nonAlbumWords.some((word) => title.includes(word));
+      })
       .map(item => normalizePlaylistToAlbum(item, channelTitle))
-      .filter(Boolean);
+      .filter(Boolean)
+      .slice(0, limit);
 
     return { albums };
   }
