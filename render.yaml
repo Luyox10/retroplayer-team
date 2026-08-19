@@ -1,0 +1,57 @@
+services:
+  # Backend API (Node + MusicBrainz + YouTube resolver)
+  - type: web
+    name: retroplayer-backend
+    runtime: node
+    plan: free
+    region: ohio
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_PORT
+        value: "10000"
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "4000"
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSL
+        value: "true"
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: YOUTUBE_API_URL
+        value: "https://www.googleapis.com/youtube/v3"
+      - key: YOUTUBE_REGION_CODE
+        value: "US"
+      - key: YOUTUBE_DEFAULT_LANGUAGE
+        value: "en"
+
+  # Frontend React user app
+  - type: web
+    name: retroplayer-frontend
+    runtime: static
+    plan: free
+    region: ohio
+    rootDir: frontend
+    buildCommand: npm install && npm run build:user
+    staticPublishPath: ./build
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: REACT_APP_API_URL
+        fromService:
+          name: retroplayer-backend
+          type: web
+          property: host

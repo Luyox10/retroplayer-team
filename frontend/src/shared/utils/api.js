@@ -1,4 +1,5 @@
-export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+const rawApiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+export const API_URL = rawApiUrl.startsWith('http') ? rawApiUrl : `https://${rawApiUrl}`;
 
 function getToken() {
   return localStorage.getItem('token');
