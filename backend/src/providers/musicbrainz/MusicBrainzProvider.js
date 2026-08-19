@@ -5,6 +5,17 @@ import { buildContentId, createSource } from '../../models/contentModels.js';
 import { resolveTracksToYouTube } from '../../services/youtubeResolver.js';
 import { AppError } from '../../utils/errors.js';
 
+function normalizeName(name) {
+  if (!name) return '';
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export class MusicBrainzProvider extends ContentProvider {
   get name() {
     return 'musicbrainz';
@@ -20,9 +31,17 @@ export class MusicBrainzProvider extends ContentProvider {
       throw new AppError('Artist not found on MusicBrainz', 404, 'NOT_FOUND');
     }
 
-    const selected = candidates
-      .filter(a => a.type === 'Person' || a.type === 'Group')
-      .sort((a, b) => (b.score || 0) - (a.score || 0))[0] || candidates[0];
+    const queryNorm = normalizeName(name);
+    const filtered = candidates.filter(a => a.type === 'Person' || a.type === 'Group');
+    const ranked = filtered.map(a => {
+      const norm = normalizeName(a.name);
+      return {
+        ...a,
+        exact: norm === queryNorm ? 1 : 0,
+        contains: norm.includes(queryNorm) ? 1 : 0,
+      };
+    }).sort((a, b) => (b.contains - a.contains) || (b.exact - a.exact) || ((b.score || 0) - (a.score || 0)));
+    const selected = ranked[0] || candidates[0];
 
     return {
       mbid: selected.id,
@@ -124,7 +143,13 @@ export class MusicBrainzProvider extends ContentProvider {
     const firstRg = trackData?.['release-group'];
     const caaData = await adapter.getCoverArtForReleaseGroup(externalId);
     const album = normalizeAlbum(firstRg, null, caaData, { releases: [trackData] });
-    const artist = firstRg?.['artist-credit']?.[0]?.artist || null;
+    const ac = firstRg?.['artist-credit']?.[0] || trackData?.['artist-credit']?.[0];
+    const artist = ac
+      ? {
+          name: ac.artist?.name || ac.name,
+          id: ac.artist?.id || null,
+        }
+      : null;
     const mbTracks = normalizeTracks(trackData, album, artist);
     const tracks = await resolveTracksToYouTube(mbTracks);
 

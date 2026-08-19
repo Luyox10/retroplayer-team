@@ -46,10 +46,11 @@ export function createAlbum({ id, name, artistId = null, artistName = null, year
  * @property {string|null} image - Thumbnail/cover URL
  * @property {number|null} position - Position inside a playlist/album
  * @property {number|null} discNumber - Disc number for multi-disc albums
+ * @property {string|null} youtubeVideoId - Resolved YouTube video ID for playback
  * @property {ContentSource} source
  */
-export function createTrack({ id, title, artist = null, artistId = null, album = null, albumId = null, duration = 0, image = null, viewCount = 0, position = null, discNumber = null, source }) {
-  return { id, title, artist, artistId, album, albumId, duration, image, viewCount, position, discNumber, source };
+export function createTrack({ id, title, artist = null, artistId = null, album = null, albumId = null, duration = 0, image = null, viewCount = 0, position = null, discNumber = null, youtubeVideoId = null, source }) {
+  return { id, title, artist, artistId, album, albumId, duration, image, viewCount, position, discNumber, youtubeVideoId, source };
 }
 
 /**

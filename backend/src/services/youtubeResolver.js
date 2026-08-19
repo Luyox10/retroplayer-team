@@ -59,6 +59,7 @@ function scoreCandidate(item, track) {
   const trackTitle = normalize(track.title);
   const artistName = normalize(track.artist);
   const titleWords = ` ${title} `;
+  const channelWords = ` ${channel} `;
   const titleCompact = title.replace(/\s+/g, '');
   const channelCompact = channel.replace(/\s+/g, '');
   const artistCompact = artistName.replace(/\s+/g, '');
@@ -118,19 +119,20 @@ function pickThumbnail(thumbnails) {
 }
 
 export async function resolveTrackToYouTube(track) {
-  if (track.source?.provider === 'youtube') return track;
+  if (track.source?.provider === 'youtube' || track.youtubeVideoId) return track;
 
   const artist = normalize(track.artist);
   const title = normalize(track.title);
   if (!artist || !title) return track;
 
   const cacheKey = `${artist}:${title}`;
-  const cached = await getCached('yt-resolved', cacheKey, 'retroplayer', RESOLVED_TTL);
-  if (cached) {
-    return createResolvedTrack(track, cached);
-  }
 
   try {
+    const cached = await getCached('yt-resolved', cacheKey, 'retroplayer', RESOLVED_TTL);
+    if (cached) {
+      return createResolvedTrack(track, cached);
+    }
+
     const data = await searchVideos(`${track.artist} ${track.title}`, 5);
     const results = data.items || [];
     if (results.length === 0) return track;
@@ -157,7 +159,8 @@ export async function resolveTrackToYouTube(track) {
 
     await setCached('yt-resolved', cacheKey, resolved, 'retroplayer', RESOLVED_TTL);
     return createResolvedTrack(track, resolved);
-  } catch {
+  } catch (err) {
+    console.error('[resolveTrackToYouTube] error:', err.message);
     return track;
   }
 }
@@ -165,7 +168,7 @@ export async function resolveTrackToYouTube(track) {
 function createResolvedTrack(track, resolved) {
   const ytDuration = parseISO8601Duration(resolved.duration);
   return createTrack({
-    id: `youtube:${resolved.videoId}`,
+    id: track.id,
     title: track.title,
     artist: track.artist,
     artistId: track.artistId,
@@ -176,7 +179,8 @@ function createResolvedTrack(track, resolved) {
     viewCount: Number(resolved.viewCount || 0),
     position: track.position,
     discNumber: track.discNumber,
-    source: createSource('youtube', resolved.videoId),
+    youtubeVideoId: resolved.videoId,
+    source: track.source,
   });
 }
 

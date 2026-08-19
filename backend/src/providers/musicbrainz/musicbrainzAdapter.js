@@ -54,8 +54,8 @@ export async function getFirstReleaseForGroup(releaseGroupMbid) {
 }
 
 export async function getReleaseTracklist(releaseMbid) {
-  const url = `${MB_BASE}/release/${encodeURIComponent(releaseMbid)}/?inc=recordings+release-groups&fmt=json`;
-  return cachedMbFetch('tracklist', releaseMbid, url, TRACKLIST_TTL);
+  const url = `${MB_BASE}/release/${encodeURIComponent(releaseMbid)}/?inc=recordings+release-groups+artist-credits&fmt=json`;
+  return cachedMbFetch('tracklist-v2', releaseMbid, url, TRACKLIST_TTL);
 }
 
 export async function getCoverArtForReleaseGroup(releaseGroupMbid) {

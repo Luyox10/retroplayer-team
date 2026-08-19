@@ -75,7 +75,7 @@ export function normalizeTracks(releaseData, album, artist) {
         id: buildContentId('musicbrainz', t.recording?.id || t.id),
         title: t.title,
         artist: artist ? artist.name : (t['artist-credit']?.[0]?.name || null),
-        artistId: artist ? buildContentId('musicbrainz', artist.id) : null,
+        artistId: artist?.id ? buildContentId('musicbrainz', artist.id) : null,
         album: album ? album.name : null,
         albumId: album ? album.id : null,
         duration: lengthMs ? Math.round(lengthMs / 1000) : 0,

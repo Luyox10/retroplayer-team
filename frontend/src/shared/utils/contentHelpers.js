@@ -18,6 +18,7 @@
  */
 export function getExternalId(track) {
   if (!track) return null;
+  if (track.youtubeVideoId) return track.youtubeVideoId;
   if (track.source?.id) return track.source.id;
   if (track.externalId) return track.externalId;
   if (track.videoId) return track.videoId;
@@ -34,6 +35,7 @@ export function getExternalId(track) {
  */
 export function getProvider(track) {
   if (!track) return 'youtube';
+  if (track.youtubeVideoId) return 'youtube';
   if (track.source?.provider) return track.source.provider;
   if (track.provider) return track.provider;
   return 'youtube';
